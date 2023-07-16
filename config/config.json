@@ -1,0 +1,23 @@
+{
+    "development": {
+        "username": "u575513417_mr_expert",
+        "password": "Nafiz@1122",
+        "database": "u575513417_mr_expert",
+        "host": "srv909.hstgr.io",
+        "table_prefix": "mx_"
+    },
+    "test": {
+        "username": "u575513417_mr_expert",
+        "password": "Nafiz@1122",
+        "database": "u575513417_mr_expert",
+        "host": "srv909.hstgr.io",
+        "table_prefix": "mx_"
+    },
+    "production": {
+        "username": "u575513417_mr_expert",
+        "password": "Nafiz@1122",
+        "database": "u575513417_mr_expert",
+        "host": "srv909.hstgr.io",
+        "table_prefix": "mx_"
+    }
+}
