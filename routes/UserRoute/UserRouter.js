@@ -5,8 +5,8 @@ const checkUserToken = require("../../utilities/tokenmanager/checkUserToken");
 const applyUploader = require("../../uploads/applyUploder");
 
 router.post("/register", authValidator.register, authController.register);
-router.post("/forget-password", authController.forget_password);
 router.post("/login", authValidator.login, authController.login);
+router.post("/forget-password", authController.forget_password);
 router.post("/send_otp", authValidator.check_user, authController.send_otp);
 router.post("/resend_otp", authValidator.check_user, authController.resend_otp);
 router.post("/verify_otp", authValidator.otp_verify, authController.otp_verify);

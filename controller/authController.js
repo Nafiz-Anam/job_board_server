@@ -13,6 +13,7 @@ var AuthController = {
     register: async (req, res) => {
         const { user_id, password } = req.body;
         try {
+            let table = "";
             let email = "";
             let mobile_no = "";
             let user_data = {};
@@ -27,16 +28,22 @@ var AuthController = {
                 mobile_no = user_id;
                 user_data.mobile_no = mobile_no;
             }
+
+            if (req.bodyString("type") === "client") {
+                table = "clients";
+            } else {
+                table = "experts";
+            }
+
             try {
-                user_data.user_id = user_id;
                 let hashPassword = enc_dec.encrypt(password);
                 user_data.password = hashPassword;
-                await UserModel.add(user_data)
+                await UserModel.add(user_data, table)
                     .then(async (result) => {
                         // jwt token
                         let payload = {
                             id: result.insert_id,
-                            type: "user",
+                            type: req.bodyString("type"),
                         };
                         const token = accessToken(payload);
                         res.status(200).json({
@@ -68,60 +75,55 @@ var AuthController = {
         }
     },
 
-    forget_password: async (req, res) => {
-        const { password } = req.body;
-        try {
-            let check_user_exist = await helpers.get_data_list("*", "users", {
-                id: req.user.id,
-                deleted: 0,
-            });
-            console.log("hashPassword", hashPassword);
-            let plain_pa = enc_dec.decrypt(check_user_exist[0].password);
-            if (plain_pa !== password) {
-                res.status(500).json({
-                    status: false,
-                    message: "Wrong password!",
-                });
-            }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: error.message,
-            });
-        }
-    },
-
     login: async (req, res) => {
         const { user_id, password } = req.body;
         try {
+            let table;
+            let email = "";
+            let mobile_no = "";
             let user_data = {};
+            // Regular expression pattern for email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (emailRegex.test(user_id)) {
+                // The email is valid
+                email = user_id;
+                user_data.email = email;
+            } else {
+                // The email is invalid
+                mobile_no = user_id;
+                user_data.mobile_no = mobile_no;
+            }
+
+            if (req.bodyString("type")) {
+                if (req.bodyString("type") === "client") {
+                    table = "clients";
+                } else {
+                    table = "experts";
+                }
+            }
+
             try {
-                user_data.user_id = user_id;
-                let hashPassword = enc_dec.encrypt(password);
-                user_data.password = hashPassword;
                 let check_user_exist = await helpers.get_data_list(
                     "*",
-                    "users",
-                    {
-                        user_id: user_id,
-                        deleted: 0,
-                    }
+                    table,
+                    user_data
                 );
-                console.log("hashPassword", hashPassword);
-                let plain_pa = enc_dec.decrypt(check_user_exist[0].password);
-                if (plain_pa !== password) {
+                // console.log("hashPassword", hashPassword);
+                let plain_pass = enc_dec.decrypt(check_user_exist[0].password);
+
+                if (plain_pass !== password) {
                     res.status(500).json({
                         status: false,
                         message: "Wrong password!",
+
                     });
                 } else {
-                    await UserModel.select(user_data)
+                    await UserModel.select(user_data, table)
                         .then(async (result) => {
                             // jwt token
                             let payload = {
-                                id: result.id,
-                                type: "user",
+                                id: result[0].id,
+                                type: req.bodyString("type"),
                             };
                             const token = accessToken(payload);
                             res.status(200).json({
@@ -143,6 +145,30 @@ var AuthController = {
                 res.status(500).json({
                     status: false,
                     message: error.message,
+                });
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: error.message,
+            });
+        }
+    },
+
+    forget_password: async (req, res) => {
+        const { password } = req.body;
+        try {
+            let check_user_exist = await helpers.get_data_list("*", "users", {
+                id: req.user.id,
+                deleted: 0,
+            });
+            console.log("hashPassword", hashPassword);
+            let plain_pa = enc_dec.decrypt(check_user_exist[0].password);
+            if (plain_pa !== password) {
+                res.status(500).json({
+                    status: false,
+                    message: "Wrong password!",
                 });
             }
         } catch (error) {

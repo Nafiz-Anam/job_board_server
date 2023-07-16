@@ -8,7 +8,8 @@ const review_table = config.table_prefix + "reviews";
 const helpers = require("../utilities/helper/general_helper");
 
 var dbModel = {
-    add: async (data) => {
+    add: async (data, table) => {
+        let dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(dbtable, data);
         qb.release();
@@ -40,7 +41,8 @@ var dbModel = {
     //     return response;
     // },
 
-    select: async (condition) => {
+    select: async (condition, table) => {
+        let dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(dbtable);
         qb.release();
@@ -88,7 +90,7 @@ var dbModel = {
         qb.release();
         return response;
     },
-    
+
     select_review_list: async (limit) => {
         let qb = await pool.get_connection();
         let response;
@@ -164,7 +166,10 @@ var dbModel = {
     },
     updateProfile: async (condition, data) => {
         let qb = await pool.get_connection();
-        let response = await qb.set(data).where(condition).update(profile_table);
+        let response = await qb
+            .set(data)
+            .where(condition)
+            .update(profile_table);
         qb.release();
         return response;
     },
