@@ -5,7 +5,6 @@ const JobRouter = require("./JobRoute/JobRoute");
 
 
 router.use("/user", UserRouter);
-router.use("/account", AccountRouter);
 router.use("/job", JobRouter);
 
 
