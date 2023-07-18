@@ -115,7 +115,6 @@ var AuthController = {
                     res.status(500).json({
                         status: false,
                         message: "Wrong password!",
-
                     });
                 } else {
                     await UserModel.select(user_data, table)
@@ -156,30 +155,6 @@ var AuthController = {
         }
     },
 
-    forget_password: async (req, res) => {
-        const { password } = req.body;
-        try {
-            let check_user_exist = await helpers.get_data_list("*", "users", {
-                id: req.user.id,
-                deleted: 0,
-            });
-            console.log("hashPassword", hashPassword);
-            let plain_pa = enc_dec.decrypt(check_user_exist[0].password);
-            if (plain_pa !== password) {
-                res.status(500).json({
-                    status: false,
-                    message: "Wrong password!",
-                });
-            }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: error.message,
-            });
-        }
-    },
-
     send_otp: async (req, res) => {
         const { mobile_code, mobile_no } = req.body;
         try {
@@ -199,7 +174,7 @@ var AuthController = {
 
             await otpSender(mobile_number, welcomeMessage)
                 .then(async (data) => {
-                    console.log("sms res =>", data);
+                    // console.log("sms res =>", data);
                     const uuid = new SequenceUUID({
                         valid: true,
                         dashes: true,
@@ -265,7 +240,7 @@ var AuthController = {
 
             await otpSender(mobile_number, welcomeMessage)
                 .then(async (data) => {
-                    console.log("sms res =>", data);
+                    // console.log("sms res =>", data);
                     // delete old OTP entry from table
                     let condition = {
                         mobile_code: mobile_code,
@@ -330,11 +305,11 @@ var AuthController = {
                 .then(async (result) => {
                     if (result) {
                         let userData = {
-                            type: "user",
+                            type: req.bodyString("type"),
                             mobile_code: result.mobile_code,
                             mobile_no: result.mobile_no,
                         };
-                        await UserModel.add(userData)
+                        await UserModel.updateDetails({}, userData)
                             .then(async (result) => {
                                 let profile_data = {
                                     user_id: result.insert_id,
@@ -393,136 +368,26 @@ var AuthController = {
         }
     },
 
-    set_pin: async (req, res) => {
+    forget_password: async (req, res) => {
+        const { password } = req.body;
         try {
-            let token = req.bodyString("token");
-            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-                if (err) {
-                    if (err.message === "jwt expired") {
-                        res.status(500).json({
-                            status: false,
-                            error: "Token Expired Please Login.",
-                        });
-                    } else {
-                        res.status(500).json({
-                            status: false,
-                            error: "Unable To Validate Token",
-                        });
-                    }
-                } else if (user.type !== "user") {
-                    res.status(500).json({
-                        status: false,
-                        error: "Forbidden access to this route.",
-                    });
-                } else {
-                    req.user = user;
-                }
-            });
-
-            let condition = {
+            let check_user_exist = await helpers.get_data_list("*", "users", {
                 id: req.user.id,
-            };
-            UserModel.select(condition)
-                .then(async (result) => {
-                    if (result) {
-                        userData = {
-                            pin: req.bodyString("pin"),
-                        };
-                        await UserModel.updateDetails(
-                            { id: req.user.id },
-                            userData
-                        )
-                            .then(async (result) => {
-                                // jwt token
-                                let payload = {
-                                    id: req.user.id,
-                                    type: "user",
-                                };
-                                const token = accessToken(payload);
-
-                                res.status(200).json({
-                                    status: true,
-                                    token: token,
-                                    message: "Pin added successfully!",
-                                });
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                                res.status(500).json({
-                                    status: false,
-                                    message: "Internal server error!",
-                                });
-                            });
-                    } else {
-                        res.status(500).json({
-                            status: false,
-                            message: "User not found!",
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
+                deleted: 0,
+            });
+            console.log("hashPassword", hashPassword);
+            let plain_pa = enc_dec.decrypt(check_user_exist[0].password);
+            if (plain_pa !== password) {
+                res.status(500).json({
+                    status: false,
+                    message: "Wrong password!",
                 });
+            }
         } catch (error) {
             console.log(error);
             res.status(500).json({
                 status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    change_pin: async (req, res) => {
-        try {
-            let condition = {
-                id: req.user.id,
-            };
-            UserModel.select(condition)
-                .then(async (result) => {
-                    if (result) {
-                        userData = {
-                            pin: req.bodyString("new_pin"),
-                        };
-                        await UserModel.updateDetails(
-                            { id: req.user.id },
-                            userData
-                        )
-                            .then(async (result) => {
-                                res.status(200).json({
-                                    status: true,
-                                    message: "Pin updated successfully!",
-                                });
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                                res.status(500).json({
-                                    status: false,
-                                    message: "Internal server error!",
-                                });
-                            });
-                    } else {
-                        res.status(500).json({
-                            status: false,
-                            message: "User not found!",
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: "Internal server error!",
+                message: error.message,
             });
         }
     },
@@ -548,6 +413,39 @@ var AuthController = {
                     res.status(200).json({
                         status: true,
                         message: "Profile updated successfully!",
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: "Internal server error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+
+    update_location: async (req, res) => {
+        try {
+            const currentDatetime = moment();
+            let user_data = {
+                location: req.bodyString("location"),
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+            console.log(user_data);
+
+            UserModel.updateProfile({ user_id: req.user.id }, user_data)
+                .then((result) => {
+                    console.log(result);
+                    res.status(200).json({
+                        status: true,
+                        message: "Profile location updated successfully!",
                     });
                 })
                 .catch((error) => {

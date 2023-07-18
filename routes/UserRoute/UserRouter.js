@@ -2,7 +2,7 @@ const router = require("express").Router();
 const authController = require("../../controller/authController");
 const authValidator = require("../../utilities/validations/authValidation");
 const checkUserToken = require("../../utilities/tokenmanager/checkUserToken");
-const applyUploader = require("../../uploads/applyUploder");
+const applyUploader = require("../../uploads/CategoryUploader");
 
 router.post("/register", authValidator.register, authController.register);
 router.post("/login", authValidator.login, authController.login);
@@ -18,10 +18,11 @@ router.post(
     authController.update_profile
 );
 router.post(
-    "/change/phone",
+    "/profile/update-location",
     checkUserToken,
-    authController.change_phone
+    authController.update_location
 );
+router.post("/change/phone", checkUserToken, authController.change_phone);
 router.post("/profile/details", checkUserToken, authController.profile_details);
 
 module.exports = router;

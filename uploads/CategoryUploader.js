@@ -3,7 +3,7 @@ const path = require("path");
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "public/profile");
+        cb(null, "public/category");
     },
 
     filename: (req, file, cb) => {
@@ -37,15 +37,15 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-let applyUploader = multer({
+let CategoryUploader = multer({
     storage: fileStorage,
     limits: { fileSize: "2mb" },
     fileFilter: fileFilter,
 }).fields([
     {
-        name: "profile_img",
+        name: "service_image",
         maxCount: 1,
-    }
+    },
 ]);
 
-module.exports = applyUploader;
+module.exports = CategoryUploader;

@@ -141,7 +141,11 @@ const authValidation = {
 
     check_user: async (req, res, next) => {
         const schema = Joi.object({
-            mobile_code: Joi.string().required().min(3).messages({
+            type: Joi.string().required().messages({
+                "any.required": "Type is required",
+                "string.empty": "Type cannot be empty",
+            }),
+            mobile_code: Joi.string().required().min(4).messages({
                 "any.required": "Mobile code is required",
                 "string.min": "Mobile code must be at least 3 characters long",
                 "string.empty": "Mobile code cannot be empty",
@@ -155,9 +159,15 @@ const authValidation = {
         });
 
         try {
-            let check_mobile_exist = await helpers.get_data_list("*", "users", {
+            let table = "";
+            if (req.bodyString("type") === "client") {
+                table = "clients";
+            } else {
+                table = "experts";
+            }
+
+            let check_mobile_exist = await helpers.get_data_list("*", table, {
                 mobile_no: req.bodyString("mobile_no"),
-                deleted: 0,
             });
             console.log(check_mobile_exist);
             const result = schema.validate(req.body);
@@ -167,12 +177,13 @@ const authValidation = {
                     error: result.error.message,
                 });
             } else if (check_mobile_exist.length > 0) {
-                next();
-            } else {
                 res.status(500).json({
                     status: false,
-                    error: "User not found!",
+                    error: "Mobile no. already exist!",
                 });
+                
+            } else {
+                next();
             }
         } catch (error) {
             res.status(500).json({
