@@ -234,6 +234,35 @@ var JobController = {
             });
         }
     },
+
+    delete: async (req, res) => {
+        try {
+            let id = enc_dec.decrypt(req.bodyString("job_id"));
+            await JobModel.delete({ id: id })
+                .then(async (result) => {
+                    res.status(200).json({
+                        status: true,
+                        data: response,
+                        message: "Job deleted successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
+        }
+    },
 };
 
 module.exports = JobController;
