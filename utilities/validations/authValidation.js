@@ -364,6 +364,11 @@ const authValidation = {
 
     update_profile: async (req, res, next) => {
         const schema = Joi.object({
+            type: Joi.string().required().valid("client", "expert").messages({
+                "any.required": "Type is required",
+                "any.only": "Type must be one of 'client', or 'expert'",
+                "string.empty": "Type cannot be empty",
+            }),
             full_name: Joi.string().required().messages({
                 "any.required": "Full name is required",
                 "string.empty": "Full name cannot be empty",

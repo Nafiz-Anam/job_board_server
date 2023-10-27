@@ -173,6 +173,7 @@ var dbModel = {
             .where(condition)
             .update(profile_table);
         qb.release();
+        console.log(qb.last_query());
         return response;
     },
 };

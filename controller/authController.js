@@ -16,22 +16,9 @@ var AuthController = {
         const { password } = req.body;
         try {
             let table = "";
-            // let email = "";
-            // let mobile_no = "";
             let user_data = {};
-            // Regular expression pattern for email validation
-            // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            // if (emailRegex.test(user_id)) {
-            //     // The email is valid
-            //     email = user_id;
-            //     user_data.email = email;
-            // } else {
-            //     // The email is invalid
-            //     mobile_no = user_id;
-            //     user_data.mobile_no = mobile_no;
-            // }
 
-            if (req.bodyString("type") === "client") {
+            if (req.user.type === "client") {
                 table = "clients";
             } else {
                 table = "experts";
@@ -48,8 +35,8 @@ var AuthController = {
                     .then(async (result) => {
                         // jwt token
                         let payload = {
-                            id: result.insert_id,
-                            type: req.bodyString("type"),
+                            id: req.user.id,
+                            type: req.user.type,
                         };
                         const token = accessToken(payload);
                         res.status(200).json({
@@ -216,6 +203,7 @@ var AuthController = {
             });
         }
     },
+
     send_otp: async (req, res) => {
         const { mobile_code, mobile_no } = req.body;
         try {
@@ -334,6 +322,7 @@ var AuthController = {
             });
         }
     },
+
     password_send_otp: async (req, res) => {
         const { mobile_code, mobile_no, email, type } = req.body;
         try {
@@ -591,6 +580,7 @@ var AuthController = {
             });
         }
     },
+
     otp_verify: async (req, res) => {
         try {
             let condition = {
@@ -613,6 +603,7 @@ var AuthController = {
                             .then(async (result) => {
                                 let profile_data = {
                                     user_id: result.insert_id,
+                                    type: req.bodyString("type"),
                                     mobile_no: userData.mobile_no,
                                 };
                                 // user details
@@ -722,6 +713,7 @@ var AuthController = {
             });
         }
     },
+
     forget_password: async (req, res) => {
         const { password } = req.body;
         try {
@@ -762,13 +754,36 @@ var AuthController = {
             };
             console.log(user_data);
 
-            UserModel.updateProfile({ user_id: req.user.id }, user_data)
+            UserModel.updateProfile(
+                { user_id: req.user.id, type: req.user.type },
+                user_data
+            )
                 .then((result) => {
-                    console.log(result);
-                    res.status(200).json({
-                        status: true,
-                        message: "Profile updated successfully!",
-                    });
+                    let table;
+                    if (req.user.type === "client") {
+                        table = "clients";
+                    } else {
+                        table = "experts";
+                    }
+
+                    UserModel.updateDetails(
+                        { id: req.user.id },
+                        { email: req.bodyString("email") },
+                        table
+                    )
+                        .then((result) => {
+                            res.status(200).json({
+                                status: true,
+                                message: "Profile updated successfully!",
+                            });
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                            res.status(500).json({
+                                status: false,
+                                message: "Failed to update profile!",
+                            });
+                        });
                 })
                 .catch((error) => {
                     console.log(error);
@@ -795,7 +810,10 @@ var AuthController = {
             };
             console.log(user_data);
 
-            UserModel.updateProfile({ user_id: req.user.id }, user_data)
+            UserModel.updateProfile(
+                { user_id: req.user.id, type: req.user.type },
+                user_data
+            )
                 .then((result) => {
                     console.log(result);
                     res.status(200).json({
@@ -855,7 +873,7 @@ var AuthController = {
     profile_details: async (req, res) => {
         try {
             let user_id = req.user.id;
-            UserModel.select_profile({ user_id: user_id })
+            UserModel.select_profile({ user_id: user_id, type: req.user.type })
                 .then((result) => {
                     let profile_data;
                     for (let val of result) {
