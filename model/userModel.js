@@ -158,7 +158,8 @@ var dbModel = {
     //     qb.release();
     //     return response[0];
     // },
-    updateDetails: async (condition, data) => {
+    updateDetails: async (condition, data, table) => {
+        const dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(dbtable);
         qb.release();

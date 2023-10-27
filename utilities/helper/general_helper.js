@@ -421,19 +421,19 @@ var helpers = {
 
     //     return output_string1;
     // },
-    // get_and_conditional_string: async (obj) => {
-    //     var output_string = "";
-    //     for (var key in obj) {
-    //         if (obj.hasOwnProperty(key)) {
-    //             output_string += "and " + key + " = '" + obj[key] + "' ";
-    //         }
-    //     }
+    get_and_conditional_string: async (obj) => {
+        var output_string = "";
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                output_string += "and " + key + " = '" + obj[key] + "' ";
+            }
+        }
 
-    //     let words = output_string.split(" ");
-    //     let output_string1 = words.slice(1).join(" ");
+        let words = output_string.split(" ");
+        let output_string1 = words.slice(1).join(" ");
 
-    //     return output_string1;
-    // },
+        return output_string1;
+    },
     // get_or_conditional_string: async (obj) => {
     //     var output_string = "";
     //     for (var key in obj) {

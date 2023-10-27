@@ -2,27 +2,47 @@ const router = require("express").Router();
 const authController = require("../../controller/authController");
 const authValidator = require("../../utilities/validations/authValidation");
 const checkUserToken = require("../../utilities/tokenmanager/checkUserToken");
-const applyUploader = require("../../uploads/CategoryUploader");
+const checkPermission = require("../../utilities/tokenmanager/checkpermission");
+const ProfileUploader = require("../../uploads/ProfileUploader");
 
-router.post("/register", authValidator.register, authController.register);
-router.post("/login", authValidator.login, authController.login);
-router.post("/forget-password", authController.forget_password);
 router.post("/send_otp", authValidator.check_user, authController.send_otp);
+router.post(
+    "/test/send_otp",
+    authValidator.check_user,
+    authController.test_send_otp
+);
+router.post("/password/send_otp", authController.password_send_otp);
+router.post("/test/password/send_otp", authController.test_password_send_otp);
 router.post("/resend_otp", authValidator.check_user, authController.resend_otp);
 router.post("/verify_otp", authValidator.otp_verify, authController.otp_verify);
+router.post("/password/verify_otp", authController.password_otp_verify);
+router.post(
+    "/add_password",
+    checkPermission,
+    authValidator.add_password,
+    authController.add_password
+);
+router.post("/login", authValidator.login, authController.login);
 router.post(
     "/profile/update",
-    checkUserToken,
-    applyUploader,
+    checkPermission,
+    ProfileUploader,
     authValidator.update_profile,
     authController.update_profile
 );
 router.post(
     "/profile/update-location",
-    checkUserToken,
+    checkPermission,
     authController.update_location
 );
-router.post("/change/phone", checkUserToken, authController.change_phone);
-router.post("/profile/details", checkUserToken, authController.profile_details);
+router.post("/change/phone", checkPermission, authController.change_phone);
+router.post(
+    "/profile/details",
+    checkPermission,
+    authController.profile_details
+);
+
+router.post("/check-user", authController.check_user);
+router.post("/forget-password", authController.forget_password);
 
 module.exports = router;

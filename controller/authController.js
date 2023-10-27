@@ -8,26 +8,27 @@ const otpSender = require("../utilities/sms/sentotp");
 const SequenceUUID = require("sequential-uuid");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
+let static_url = process.env.STATIC_FILE_URL;
 
 var AuthController = {
-    register: async (req, res) => {
-        const { user_id, password } = req.body;
+    add_password: async (req, res) => {
+        const { password } = req.body;
         try {
             let table = "";
-            let email = "";
-            let mobile_no = "";
+            // let email = "";
+            // let mobile_no = "";
             let user_data = {};
             // Regular expression pattern for email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (emailRegex.test(user_id)) {
-                // The email is valid
-                email = user_id;
-                user_data.email = email;
-            } else {
-                // The email is invalid
-                mobile_no = user_id;
-                user_data.mobile_no = mobile_no;
-            }
+            // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            // if (emailRegex.test(user_id)) {
+            //     // The email is valid
+            //     email = user_id;
+            //     user_data.email = email;
+            // } else {
+            //     // The email is invalid
+            //     mobile_no = user_id;
+            //     user_data.mobile_no = mobile_no;
+            // }
 
             if (req.bodyString("type") === "client") {
                 table = "clients";
@@ -38,7 +39,11 @@ var AuthController = {
             try {
                 let hashPassword = enc_dec.encrypt(password);
                 user_data.password = hashPassword;
-                await UserModel.add(user_data, table)
+                await UserModel.updateDetails(
+                    { id: req.user.id },
+                    user_data,
+                    table
+                )
                     .then(async (result) => {
                         // jwt token
                         let payload = {
@@ -49,28 +54,28 @@ var AuthController = {
                         res.status(200).json({
                             status: true,
                             token: token,
-                            message: "User register successfully!",
+                            message: "User password added successfully!",
                         });
                     })
                     .catch((error) => {
                         console.log(error);
                         res.status(500).json({
                             status: false,
-                            message: "User registration failed!",
+                            message: "Failed to add user password!",
                         });
                     });
             } catch (error) {
                 console.log(error);
                 res.status(500).json({
                     status: false,
-                    message: error.message,
+                    message: "Server side error!",
                 });
             }
         } catch (error) {
             console.log(error);
             res.status(500).json({
                 status: false,
-                message: error.message,
+                message: "Server side error!",
             });
         }
     },
@@ -155,6 +160,61 @@ var AuthController = {
         }
     },
 
+    test_send_otp: async (req, res) => {
+        const { mobile_code, mobile_no } = req.body;
+        try {
+            let otp = await helpers.generateOtp(6);
+            const title = "Mr. Xpert";
+            const mobile_number = `${mobile_code}${mobile_no}`;
+
+            const welcomeMessage =
+                "Welcome to " +
+                title +
+                "! Your verification code is: " +
+                otp +
+                ". Do not share it with anyone.";
+
+            console.log("mobile_number", mobile_number);
+            console.log("welcomeMessage", welcomeMessage);
+
+            // console.log("sms res =>", data);
+            const uuid = new SequenceUUID({
+                valid: true,
+                dashes: true,
+                unsafeBuffer: true,
+            });
+
+            let token = uuid.generate();
+            let ins_data = {
+                mobile_code: mobile_code,
+                mobile_no: mobile_no,
+                otp: otp,
+                token: token,
+            };
+            CustomerModel.addMobileOTP(ins_data)
+                .then(async (result) => {
+                    res.status(200).json({
+                        status: true,
+                        token: token,
+                        otp: welcomeMessage,
+                        message: "Otp sent on your mobile number",
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: error.message,
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: error.message,
+            });
+        }
+    },
     send_otp: async (req, res) => {
         const { mobile_code, mobile_no } = req.body;
         try {
@@ -166,6 +226,122 @@ var AuthController = {
                 "Welcome to " +
                 title +
                 "! Your verification code is: " +
+                otp +
+                ". Do not share it with anyone.";
+
+            console.log("mobile_number", mobile_number);
+            console.log("welcomeMessage", welcomeMessage);
+
+            await otpSender(mobile_number, welcomeMessage)
+                .then(async (data) => {
+                    // console.log("sms res =>", data);
+                    const uuid = new SequenceUUID({
+                        valid: true,
+                        dashes: true,
+                        unsafeBuffer: true,
+                    });
+
+                    let token = uuid.generate();
+                    let ins_data = {
+                        mobile_code: mobile_code,
+                        mobile_no: mobile_no,
+                        otp: otp,
+                        token: token,
+                        sms_id: data,
+                    };
+                    CustomerModel.addMobileOTP(ins_data)
+                        .then(async (result) => {
+                            res.status(200).json({
+                                status: true,
+                                token: token,
+                                message: "Otp sent on your mobile number",
+                            });
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                            res.status(500).json({
+                                status: false,
+                                message: error.message,
+                            });
+                        });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: error.message,
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: error.message,
+            });
+        }
+    },
+
+    test_password_send_otp: async (req, res) => {
+        const { mobile_code, mobile_no } = req.body;
+        try {
+            let otp = await helpers.generateOtp(6);
+            const mobile_number = `${mobile_code}${mobile_no}`;
+
+            const welcomeMessage =
+                "Your verification code is: " +
+                otp +
+                ". Do not share it with anyone.";
+
+            console.log("mobile_number", mobile_number);
+            console.log("welcomeMessage", welcomeMessage);
+
+            // console.log("sms res =>", data);
+            const uuid = new SequenceUUID({
+                valid: true,
+                dashes: true,
+                unsafeBuffer: true,
+            });
+
+            let token = uuid.generate();
+            let ins_data = {
+                mobile_code: mobile_code,
+                mobile_no: mobile_no,
+                otp: otp,
+                token: token,
+            };
+            CustomerModel.addMobileOTP(ins_data)
+                .then(async (result) => {
+                    res.status(200).json({
+                        status: true,
+                        token: token,
+                        otp: welcomeMessage,
+                        message: "Otp sent on your mobile number",
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: error.message,
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: error.message,
+            });
+        }
+    },
+    password_send_otp: async (req, res) => {
+        const { mobile_code, mobile_no } = req.body;
+        try {
+            let otp = await helpers.generateOtp(6);
+            const title = "Mr. Xpert";
+            const mobile_number = `${mobile_code}${mobile_no}`;
+
+            const welcomeMessage =
+                "Your verification code is: " +
                 otp +
                 ". Do not share it with anyone.";
 
@@ -294,22 +470,93 @@ var AuthController = {
         }
     },
 
-    otp_verify: async (req, res) => {
+    password_otp_verify: async (req, res) => {
         try {
-            let selection = "id,mobile_code,mobile_no,sms_id";
             let condition = {
                 otp: req.bodyString("otp"),
                 token: req.bodyString("otp_token"),
             };
-            CustomerModel.selectMobileOtpData(selection, condition)
+            CustomerModel.selectMobileOtpData(condition)
                 .then(async (result) => {
                     if (result) {
+                        let table;
+                        if (req.bodyString("type") == "client") {
+                            table = "clients";
+                        } else {
+                            table = "experts";
+                        }
                         let userData = {
-                            type: req.bodyString("type"),
-                            mobile_code: result.mobile_code,
-                            mobile_no: result.mobile_no,
+                            mobile_no: result?.mobile_code + result?.mobile_no,
                         };
-                        await UserModel.updateDetails({}, userData)
+                        await UserModel.select_profile(userData, table)
+                            .then(async (result) => {
+                                // jwt token
+                                let payload = {
+                                    id: result[0].id,
+                                    type: req.bodyString("type"),
+                                };
+                                const token = accessToken(payload);
+
+                                // delete OTP entry from table
+                                await helpers.delete_common_entry(
+                                    condition,
+                                    "mobile_otp"
+                                );
+
+                                res.status(200).json({
+                                    status: true,
+                                    token: token,
+                                    message: "OTP verified.",
+                                });
+                            })
+                            .catch((err) => {
+                                console.log(err);
+                                res.status(500).json({
+                                    status: false,
+                                    message: "Internal server error!",
+                                });
+                            });
+                    } else {
+                        res.status(500).json({
+                            status: false,
+                            message: "Wrong OTP, Try again!",
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: "Internal server error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+    otp_verify: async (req, res) => {
+        try {
+            let condition = {
+                otp: req.bodyString("otp"),
+                token: req.bodyString("otp_token"),
+            };
+            CustomerModel.selectMobileOtpData(condition)
+                .then(async (result) => {
+                    if (result) {
+                        let table;
+                        if (req.bodyString("type") == "client") {
+                            table = "clients";
+                        } else {
+                            table = "experts";
+                        }
+                        let userData = {
+                            mobile_no: result.mobile_code + result.mobile_no,
+                        };
+                        await UserModel.add(userData, table)
                             .then(async (result) => {
                                 let profile_data = {
                                     user_id: result.insert_id,
@@ -321,7 +568,7 @@ var AuthController = {
                                 // jwt token
                                 let payload = {
                                     id: result.insert_id,
-                                    type: "user",
+                                    type: req.bodyString("type"),
                                 };
                                 const token = accessToken(payload);
 
@@ -368,6 +615,60 @@ var AuthController = {
         }
     },
 
+    check_user: async (req, res) => {
+        try {
+            let table = "";
+            if (req.bodyString("type") === "client") {
+                table = "clients";
+            } else {
+                table = "experts";
+            }
+
+            let check_mobile_exist;
+            let check_email_exist;
+            if (req.bodyString("mobile_no")) {
+                check_mobile_exist = await helpers.get_data_list("*", table, {
+                    mobile_no: req.bodyString("mobile_no"),
+                });
+                console.log(check_mobile_exist);
+
+                if (check_mobile_exist.length > 0) {
+                    res.status(200).json({
+                        status: true,
+                        error: "User found with this mobile number",
+                    });
+                } else {
+                    res.status(500).json({
+                        status: false,
+                        error: "No user found with this mobile number!",
+                    });
+                }
+            }
+
+            if (req.bodyString("email")) {
+                check_email_exist = await helpers.get_data_list("*", table, {
+                    email: req.bodyString("email"),
+                });
+                console.log(check_email_exist);
+                if (check_email_exist.length > 0) {
+                    res.status(200).json({
+                        status: true,
+                        error: "User found with this email address",
+                    });
+                } else {
+                    res.status(500).json({
+                        status: false,
+                        error: "No user found with this email address!",
+                    });
+                }
+            }
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                error: "Server side error!",
+            });
+        }
+    },
     forget_password: async (req, res) => {
         const { password } = req.body;
         try {
@@ -402,7 +703,8 @@ var AuthController = {
                 gender: req.bodyString("gender"),
                 birth_date: req.bodyString("birth_date"),
                 address: req.bodyString("address"),
-                profile_img: req.all_files?.profile_img,
+                profile_img:
+                    static_url + "profile/" + req.all_files?.profile_img,
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
             console.log(user_data);
@@ -515,6 +817,7 @@ var AuthController = {
                             gender: val?.gender ? val?.gender : "",
                             mobile_no: val?.mobile_no ? val?.mobile_no : "",
                             address: val?.address ? val?.address : "",
+                            location: val?.location ? val?.location : "",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };

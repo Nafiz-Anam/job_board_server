@@ -2,15 +2,11 @@ const Joi = require("joi");
 const helpers = require("../helper/general_helper");
 
 const authValidation = {
-    register: async (req, res, next) => {
+    add_password: async (req, res, next) => {
         const schema = Joi.object({
             type: Joi.string().required().messages({
                 "any.required": "Type is required",
                 "string.empty": "Type cannot be empty",
-            }),
-            user_id: Joi.string().required().messages({
-                "any.required": "User id is required",
-                "string.empty": "User id cannot be empty",
             }),
             password: Joi.string().required().min(6).max(16).messages({
                 "any.required": "Password is required",
@@ -34,37 +30,11 @@ const authValidation = {
         });
 
         try {
-            let table = "";
-            if (req.bodyString("type") === "client") {
-                table = "clients";
-            } else {
-                table = "experts";
-            }
-
-            let check_mobile_exist = await helpers.get_data_list("*", table, {
-                mobile_no: req.bodyString("user_id"),
-            });
-            console.log(check_mobile_exist);
-            let check_email_exist = await helpers.get_data_list("*", table, {
-                email: req.bodyString("user_id"),
-            });
-            console.log(check_email_exist);
-
             const result = schema.validate(req.body);
             if (result.error) {
                 res.status(500).json({
                     status: false,
                     error: result.error.message,
-                });
-            } else if (check_mobile_exist.length > 0) {
-                res.status(500).json({
-                    status: false,
-                    error: "Mobile number already registered. Please login!",
-                });
-            } else if (check_email_exist.length > 0) {
-                res.status(500).json({
-                    status: false,
-                    error: "Email already registered. Please login!",
                 });
             } else {
                 next();
@@ -181,7 +151,6 @@ const authValidation = {
                     status: false,
                     error: "Mobile no. already exist!",
                 });
-                
             } else {
                 next();
             }
@@ -195,6 +164,11 @@ const authValidation = {
 
     otp_verify: async (req, res, next) => {
         const schema = Joi.object({
+            type: Joi.string().required().valid("client", "expert").messages({
+                "any.required": "Type is required",
+                "any.only": "Type must be one of 'client', or 'expert'",
+                "string.empty": "Type cannot be empty",
+            }),
             otp: Joi.string().required().length(6).messages({
                 "any.required": "OTP is required",
                 "string.length": "OTP must be exactly 6 characters long",
@@ -208,16 +182,23 @@ const authValidation = {
 
         try {
             let get_mobile = await helpers.get_data_list(
-                "mobile_no",
+                "mobile_code,mobile_no",
                 "mobile_otp",
                 {
                     token: req.bodyString("otp_token"),
                 }
             );
 
-            let check_user_exist = await helpers.get_data_list("*", "users", {
-                mobile_no: get_mobile[0]?.mobile_no,
-                deleted: 0,
+            let table;
+            if (req.bodyString("type") == "client") {
+                table = "clients";
+            } else {
+                table = "experts";
+            }
+
+            let check_user_exist = await helpers.get_data_list("*", table, {
+                mobile_no:
+                    get_mobile[0]?.mobile_code + get_mobile[0]?.mobile_no,
             });
             console.log(check_user_exist);
 
@@ -405,13 +386,10 @@ const authValidation = {
                 "any.only": "Gender must be one of 'male', or 'female'",
             }),
             mobile_no: Joi.string()
-                .pattern(/^[0-9]{14}$/)
                 .required()
                 .messages({
                     "any.required": "Mobile number is required",
                     "string.empty": "Mobile number cannot be empty",
-                    "string.pattern.base":
-                        "Mobile number must be a valid 10-digit number",
                 }),
         });
         try {

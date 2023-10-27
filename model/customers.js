@@ -365,14 +365,79 @@ var dbModel = {
         qb.release();
         return response[0];
     },
-    selectMobileOtpData: async (selection, condition) => {
+    selectMobileOtpData: async ( condition) => {
         let qb = await pool.get_connection();
-        let response = await qb
-            .select(selection)
-            .where(condition)
-            .get(mobileotptable);
+        let final_cond = " where ";
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
+        if (final_cond == " where ") {
+            final_cond = "";
+        }
+        let query = "select * from mx_mobile_otp" + final_cond;
+        console.log("query => ", query);
+        let response = await qb.query(query);
         qb.release();
         return response[0];
+    },
+    select_list2: async (condition) => {
+        let qb = await pool.get_connection();
+        let final_cond = " where ";
+
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
+
+        if (Object.keys(date_condition).length) {
+            let date_condition_str = await helpers.get_date_between_condition(
+                date_condition.from_date,
+                date_condition.to_date,
+                "created_at"
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + date_condition_str;
+            } else {
+                final_cond = final_cond + " and " + date_condition_str;
+            }
+        }
+
+        if (final_cond == " where ") {
+            final_cond = "";
+        }
+
+        let query;
+        if (Object.keys(limit).length) {
+            query =
+                "select * from " +
+                dbtable +
+                final_cond +
+                " ORDER BY id DESC LIMIT " +
+                limit.perpage +
+                " OFFSET " +
+                limit.start;
+        } else {
+            query =
+                "select * from " + dbtable + final_cond + " ORDER BY id DESC";
+        }
+
+        console.log("query => ", query);
+        let response = await qb.query(query);
+        qb.release();
+        return response;
     },
     selectCustomerDetails: async (selection, condition) => {
         let qb = await pool.get_connection();
