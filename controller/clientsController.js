@@ -2,7 +2,7 @@ require("dotenv").config();
 const CategoryModel = require("../model/categoryModel");
 const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
-const STATIC_URL = process.env.STATIC_URL;
+const STATIC_URL = process.env.STATIC_FILE_URL;
 
 var ClientsController = {
     create: async (req, res) => {
@@ -71,7 +71,7 @@ var ClientsController = {
         let id = enc_dec.decrypt(req.bodyString("expert_id"));
         try {
             let data = {
-                is_block: 1
+                is_block: 1,
             };
             await CategoryModel.updateDetails({ id: id }, data)
                 .then((result) => {

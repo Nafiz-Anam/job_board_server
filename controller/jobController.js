@@ -2,7 +2,7 @@ require("dotenv").config();
 const JobModel = require("../model/jobModel");
 const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
-const STATIC_URL = process.env.STATIC_URL;
+const STATIC_URL = process.env.STATIC_FILE_URL;
 
 var JobController = {
     create: async (req, res) => {
@@ -213,7 +213,7 @@ var JobController = {
                     }
                     res.status(200).json({
                         status: true,
-                        data: response,
+                        data: response[0],
                         message: "Job details fetched successfully!",
                     });
                 })

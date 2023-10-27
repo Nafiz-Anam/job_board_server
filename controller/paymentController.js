@@ -2,7 +2,7 @@ require("dotenv").config();
 const CategoryModel = require("../model/categoryModel");
 const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
-const STATIC_URL = process.env.STATIC_URL;
+const STATIC_URL = process.env.STATIC_FILE_URL;
 
 var PaymentController = {
     list: async (req, res) => {

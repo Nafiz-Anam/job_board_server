@@ -2,7 +2,7 @@ require("dotenv").config();
 const Sub_CategoryModel = require("../model/sub_categoryModel");
 const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
-const STATIC_URL = process.env.STATIC_URL;
+const STATIC_URL = process.env.STATIC_FILE_URL;
 
 var Sub_CategoryController = {
     create: async (req, res) => {
@@ -103,7 +103,9 @@ var Sub_CategoryController = {
                             service_image: val?.service_image
                                 ? val?.service_image
                                 : "",
-                            category_id: val?.category_id ? enc_dec.encrypt(val?.category_id) : "",
+                            category_id: val?.category_id
+                                ? enc_dec.encrypt(val?.category_id)
+                                : "",
                             status: val?.status ? val?.status : "",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
