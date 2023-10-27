@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const authController = require("../../controller/authController");
 const authValidator = require("../../utilities/validations/authValidation");
-const checkUserToken = require("../../utilities/tokenmanager/checkUserToken");
 const checkPermission = require("../../utilities/tokenmanager/checkpermission");
 const ProfileUploader = require("../../uploads/ProfileUploader");
 

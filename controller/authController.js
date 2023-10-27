@@ -523,12 +523,12 @@ var AuthController = {
                                 result?.mobile_code + result?.mobile_no;
                         }
 
-                        await UserModel.select_profile(userData, table)
+                        await UserModel.select(userData, table)
                             .then(async (result) => {
                                 if (result.length) {
                                     // jwt token
                                     let payload = {
-                                        id: result[0].user_id,
+                                        id: result[0].id,
                                         type: req.bodyString("type"),
                                     };
                                     const token = accessToken(payload);
