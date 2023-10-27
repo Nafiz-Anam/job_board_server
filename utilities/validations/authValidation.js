@@ -385,12 +385,10 @@ const authValidation = {
                 "any.required": "Gender is required",
                 "any.only": "Gender must be one of 'male', or 'female'",
             }),
-            mobile_no: Joi.string()
-                .required()
-                .messages({
-                    "any.required": "Mobile number is required",
-                    "string.empty": "Mobile number cannot be empty",
-                }),
+            mobile_no: Joi.string().required().messages({
+                "any.required": "Mobile number is required",
+                "string.empty": "Mobile number cannot be empty",
+            }),
         });
         try {
             const result = schema.validate(req.body);

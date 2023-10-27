@@ -51,6 +51,7 @@ var dbModel = {
     select_profile: async (condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(profile_table);
+        console.log(qb.last_query());
         qb.release();
         return response;
     },

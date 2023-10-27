@@ -8,6 +8,7 @@ const otpSender = require("../utilities/sms/sentotp");
 const SequenceUUID = require("sequential-uuid");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
+const email_service = require("../utilities/mail/emailService");
 let static_url = process.env.STATIC_FILE_URL;
 
 var AuthController = {
@@ -334,12 +335,10 @@ var AuthController = {
         }
     },
     password_send_otp: async (req, res) => {
-        const { mobile_code, mobile_no } = req.body;
+        const { mobile_code, mobile_no, email, type } = req.body;
         try {
             let otp = await helpers.generateOtp(6);
-            const title = "Mr. Xpert";
             const mobile_number = `${mobile_code}${mobile_no}`;
-
             const welcomeMessage =
                 "Your verification code is: " +
                 otp +
@@ -348,46 +347,87 @@ var AuthController = {
             console.log("mobile_number", mobile_number);
             console.log("welcomeMessage", welcomeMessage);
 
-            await otpSender(mobile_number, welcomeMessage)
-                .then(async (data) => {
-                    // console.log("sms res =>", data);
-                    const uuid = new SequenceUUID({
-                        valid: true,
-                        dashes: true,
-                        unsafeBuffer: true,
-                    });
-
-                    let token = uuid.generate();
-                    let ins_data = {
-                        mobile_code: mobile_code,
-                        mobile_no: mobile_no,
-                        otp: otp,
-                        token: token,
-                        sms_id: data,
-                    };
-                    CustomerModel.addMobileOTP(ins_data)
-                        .then(async (result) => {
-                            res.status(200).json({
-                                status: true,
-                                token: token,
-                                message: "Otp sent on your mobile number",
-                            });
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            res.status(500).json({
-                                status: false,
-                                message: error.message,
-                            });
+            if (type == "mobile") {
+                await otpSender(mobile_number, welcomeMessage)
+                    .then(async (data) => {
+                        // console.log("sms res =>", data);
+                        const uuid = new SequenceUUID({
+                            valid: true,
+                            dashes: true,
+                            unsafeBuffer: true,
                         });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: error.message,
+
+                        let token = uuid.generate();
+                        let ins_data = {
+                            mobile_code: mobile_code,
+                            mobile_no: mobile_no,
+                            otp: otp,
+                            token: token,
+                            sms_id: data,
+                        };
+                        CustomerModel.addMobileOTP(ins_data)
+                            .then(async (result) => {
+                                res.status(200).json({
+                                    status: true,
+                                    token: token,
+                                    message: "Otp sent on your mobile number",
+                                });
+                            })
+                            .catch((error) => {
+                                console.log(error);
+                                res.status(500).json({
+                                    status: false,
+                                    message: error.message,
+                                });
+                            });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        res.status(500).json({
+                            status: false,
+                            message: error.message,
+                        });
                     });
-                });
+            } else {
+                await email_service(email, welcomeMessage)
+                    .then(async (data) => {
+                        // console.log("sms res =>", data);
+                        const uuid = new SequenceUUID({
+                            valid: true,
+                            dashes: true,
+                            unsafeBuffer: true,
+                        });
+
+                        let token = uuid.generate();
+                        let ins_data = {
+                            email: email,
+                            otp: otp,
+                            token: token,
+                        };
+                        CustomerModel.addMobileOTP(ins_data)
+                            .then(async (result) => {
+                                res.status(200).json({
+                                    status: true,
+                                    token: token,
+                                    message: "Otp sent on your mobile number",
+                                });
+                            })
+                            .catch((error) => {
+                                console.log(error);
+                                res.status(500).json({
+                                    status: false,
+                                    message: error.message,
+                                });
+                            });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        res.status(500).json({
+                            status: false,
+                            message: error.message,
+                        });
+                    });
+            }
         } catch (error) {
             console.log(error);
             res.status(500).json({
@@ -485,29 +525,42 @@ var AuthController = {
                         } else {
                             table = "experts";
                         }
-                        let userData = {
-                            mobile_no: result?.mobile_code + result?.mobile_no,
-                        };
+
+                        let userData = {};
+                        if (result?.email) {
+                            userData.email = result?.email;
+                        } else {
+                            userData.mobile_no =
+                                result?.mobile_code + result?.mobile_no;
+                        }
+
                         await UserModel.select_profile(userData, table)
                             .then(async (result) => {
-                                // jwt token
-                                let payload = {
-                                    id: result[0].id,
-                                    type: req.bodyString("type"),
-                                };
-                                const token = accessToken(payload);
+                                if (result.length) {
+                                    // jwt token
+                                    let payload = {
+                                        id: result[0].user_id,
+                                        type: req.bodyString("type"),
+                                    };
+                                    const token = accessToken(payload);
 
-                                // delete OTP entry from table
-                                await helpers.delete_common_entry(
-                                    condition,
-                                    "mobile_otp"
-                                );
+                                    // delete OTP entry from table
+                                    await helpers.delete_common_entry(
+                                        condition,
+                                        "mobile_otp"
+                                    );
 
-                                res.status(200).json({
-                                    status: true,
-                                    token: token,
-                                    message: "OTP verified.",
-                                });
+                                    res.status(200).json({
+                                        status: true,
+                                        token: token,
+                                        message: "OTP verified.",
+                                    });
+                                } else {
+                                    res.status(500).json({
+                                        status: false,
+                                        message: "User not found!",
+                                    });
+                                }
                             })
                             .catch((err) => {
                                 console.log(err);
