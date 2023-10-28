@@ -87,12 +87,18 @@ var AuthController = {
                 user_data.mobile_no = mobile_no;
             }
 
-            if (req.bodyString("type")) {
-                if (req.bodyString("type") === "client") {
-                    table = "clients";
-                } else {
-                    table = "experts";
-                }
+            let expert = await helpers.get_data_list("*", "experts", user_data);
+            let client = await helpers.get_data_list("*", "clients", user_data);
+
+            if (expert.length) {
+                table = "experts";
+            } else if (client.length) {
+                table = "clients";
+            } else {
+                res.status(500).json({
+                    status: false,
+                    message: "User not found!",
+                });
             }
 
             try {
@@ -115,7 +121,7 @@ var AuthController = {
                             // jwt token
                             let payload = {
                                 id: result[0].id,
-                                type: req.bodyString("type"),
+                                type: table == "experts" ? "expert" : "client",
                             };
                             const token = accessToken(payload);
                             res.status(200).json({
@@ -508,28 +514,48 @@ var AuthController = {
             CustomerModel.selectMobileOtpData(condition)
                 .then(async (result) => {
                     if (result) {
+                        let user_data = {};
+                        if (result[0].email) {
+                            user_data.email = result[0].email;
+                        }
+                        if (result[0].mobile_no) {
+                            user_data.mobile_no =
+                                result[0].code + result[0].mobile_no;
+                        }
+
                         let table;
-                        if (req.bodyString("type") == "client") {
+                        let client = await helpers.get_data_list(
+                            "*",
+                            "clients",
+                            user_data
+                        );
+                        let expert = await helpers.get_data_list(
+                            "*",
+                            "experts",
+                            user_data
+                        );
+
+                        if (client.length) {
                             table = "clients";
-                        } else {
+                        } else if (expert.length) {
                             table = "experts";
-                        }
-
-                        let userData = {};
-                        if (result?.email) {
-                            userData.email = result?.email;
                         } else {
-                            userData.mobile_no =
-                                result?.mobile_code + result?.mobile_no;
+                            res.status(500).json({
+                                status: false,
+                                message: "User not found!",
+                            });
                         }
 
-                        await UserModel.select(userData, table)
+                        await UserModel.select(user_data, table)
                             .then(async (result) => {
                                 if (result.length) {
                                     // jwt token
                                     let payload = {
                                         id: result[0].id,
-                                        type: req.bodyString("type"),
+                                        type:
+                                            table === "clients"
+                                                ? "client"
+                                                : "expert",
                                     };
                                     const token = accessToken(payload);
 
@@ -590,12 +616,12 @@ var AuthController = {
             CustomerModel.selectMobileOtpData(condition)
                 .then(async (result) => {
                     if (result) {
-                        let table;
-                        if (req.bodyString("type") == "client") {
-                            table = "clients";
-                        } else {
-                            table = "experts";
-                        }
+                        let table = "clients";
+                        // if (req.bodyString("type") == "client") {
+                        //     table = "clients";
+                        // } else {
+                        //     table = "experts";
+                        // }
                         let userData = {
                             mobile_no: result.mobile_code + result.mobile_no,
                         };
@@ -603,7 +629,8 @@ var AuthController = {
                             .then(async (result) => {
                                 let profile_data = {
                                     user_id: result.insert_id,
-                                    type: req.bodyString("type"),
+                                    type: "client",
+                                    // type: req.bodyString("type"),
                                     mobile_no: userData.mobile_no,
                                 };
                                 // user details
@@ -612,7 +639,7 @@ var AuthController = {
                                 // jwt token
                                 let payload = {
                                     id: result.insert_id,
-                                    type: req.bodyString("type"),
+                                    type: "client",
                                 };
                                 const token = accessToken(payload);
 
@@ -661,22 +688,31 @@ var AuthController = {
 
     check_user: async (req, res) => {
         try {
-            let table = "";
-            if (req.bodyString("type") === "client") {
-                table = "clients";
-            } else {
-                table = "experts";
-            }
-
-            let check_mobile_exist;
-            let check_email_exist;
+            let check_mobile_exist_client;
+            let check_mobile_exist_expert;
+            let check_email_exist_client;
+            let check_email_exist_expert;
             if (req.bodyString("mobile_no")) {
-                check_mobile_exist = await helpers.get_data_list("*", table, {
-                    mobile_no: req.bodyString("mobile_no"),
-                });
-                console.log(check_mobile_exist);
-
-                if (check_mobile_exist.length > 0) {
+                check_mobile_exist_client = await helpers.get_data_list(
+                    "*",
+                    "clients",
+                    {
+                        mobile_no: req.bodyString("mobile_no"),
+                    }
+                );
+                check_mobile_exist_expert = await helpers.get_data_list(
+                    "*",
+                    "experts",
+                    {
+                        mobile_no: req.bodyString("mobile_no"),
+                    }
+                );
+                if (check_mobile_exist_expert.length > 0) {
+                    res.status(200).json({
+                        status: true,
+                        error: "User found with this mobile number",
+                    });
+                } else if (check_mobile_exist_client.length > 0) {
                     res.status(200).json({
                         status: true,
                         error: "User found with this mobile number",
@@ -690,11 +726,28 @@ var AuthController = {
             }
 
             if (req.bodyString("email")) {
-                check_email_exist = await helpers.get_data_list("*", table, {
-                    email: req.bodyString("email"),
-                });
-                console.log(check_email_exist);
-                if (check_email_exist.length > 0) {
+                check_email_exist_client = await helpers.get_data_list(
+                    "*",
+                    "clients",
+                    {
+                        email: req.bodyString("email"),
+                    }
+                );
+
+                check_email_exist_expert = await helpers.get_data_list(
+                    "*",
+                    "experts",
+                    {
+                        email: req.bodyString("email"),
+                    }
+                );
+
+                if (check_email_exist_expert.length > 0) {
+                    res.status(200).json({
+                        status: true,
+                        error: "User found with this email address",
+                    });
+                } else if (check_email_exist_client.length > 0) {
                     res.status(200).json({
                         status: true,
                         error: "User found with this email address",

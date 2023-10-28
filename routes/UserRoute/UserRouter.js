@@ -21,7 +21,8 @@ router.post(
     authValidator.add_password,
     authController.add_password
 );
-router.post("/login", authValidator.login, authController.login);
+router.post("/login", authController.login);
+// router.post("/login", authValidator.login, authController.login);
 router.post(
     "/profile/update",
     checkPermission,

@@ -46,10 +46,10 @@ const authValidation = {
 
     login: async (req, res, next) => {
         const schema = Joi.object({
-            type: Joi.string().required().messages({
-                "any.required": "Type is required",
-                "string.empty": "Type cannot be empty",
-            }),
+            // type: Joi.string().required().messages({
+            //     "any.required": "Type is required",
+            //     "string.empty": "Type cannot be empty",
+            // }),
             user_id: Joi.string().required().messages({
                 "any.required": "User id is required",
                 "string.empty": "User id cannot be empty",
@@ -107,10 +107,10 @@ const authValidation = {
 
     check_user: async (req, res, next) => {
         const schema = Joi.object({
-            type: Joi.string().required().messages({
-                "any.required": "Type is required",
-                "string.empty": "Type cannot be empty",
-            }),
+            // type: Joi.string().required().messages({
+            //     "any.required": "Type is required",
+            //     "string.empty": "Type cannot be empty",
+            // }),
             mobile_code: Joi.string().required().min(4).messages({
                 "any.required": "Mobile code is required",
                 "string.min": "Mobile code must be at least 3 characters long",
@@ -125,12 +125,12 @@ const authValidation = {
         });
 
         try {
-            let table = "";
-            if (req.bodyString("type") === "client") {
-                table = "clients";
-            } else {
-                table = "experts";
-            }
+            let table = "clients";
+            // if (req.bodyString("type") === "client") {
+            //     table = "clients";
+            // } else {
+            //     table = "experts";
+            // }
 
             let check_mobile_exist = await helpers.get_data_list("*", table, {
                 mobile_no: req.bodyString("mobile_no"),
@@ -160,11 +160,11 @@ const authValidation = {
 
     otp_verify: async (req, res, next) => {
         const schema = Joi.object({
-            type: Joi.string().required().valid("client", "expert").messages({
-                "any.required": "Type is required",
-                "any.only": "Type must be one of 'client', or 'expert'",
-                "string.empty": "Type cannot be empty",
-            }),
+            // type: Joi.string().required().valid("client", "expert").messages({
+            //     "any.required": "Type is required",
+            //     "any.only": "Type must be one of 'client', or 'expert'",
+            //     "string.empty": "Type cannot be empty",
+            // }),
             otp: Joi.string().required().length(6).messages({
                 "any.required": "OTP is required",
                 "string.length": "OTP must be exactly 6 characters long",
@@ -185,12 +185,12 @@ const authValidation = {
                 }
             );
 
-            let table;
-            if (req.bodyString("type") == "client") {
-                table = "clients";
-            } else {
-                table = "experts";
-            }
+            let table = "clients";
+            // if (req.bodyString("type") == "client") {
+            //     table = "clients";
+            // } else {
+            //     table = "experts";
+            // }
 
             let check_user_exist = await helpers.get_data_list("*", table, {
                 mobile_no:
