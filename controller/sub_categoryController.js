@@ -74,7 +74,7 @@ var Sub_CategoryController = {
     list: async (req, res) => {
         try {
             let limit = {
-                perpage: 0,
+                perpage: 10,
                 start: 0,
             };
             if (req.bodyString("perpage") && req.bodyString("page")) {
@@ -106,7 +106,7 @@ var Sub_CategoryController = {
                             category_id: val?.category_id
                                 ? enc_dec.encrypt(val?.category_id)
                                 : "",
-                            status: val?.status ? val?.status : "",
+                            status: val?.status == 0 ? "active" : "inactive",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };
@@ -139,7 +139,7 @@ var Sub_CategoryController = {
 
     details: async (req, res) => {
         try {
-            let id = enc_dec.decrypt(req.bodyString("job_id"));
+            let id = enc_dec.decrypt(req.bodyString("sub_category_id"));
             await Sub_CategoryModel.select({ id: id })
                 .then(async (result) => {
                     let response = [];
@@ -156,7 +156,7 @@ var Sub_CategoryController = {
                             category_id: val?.category_id
                                 ? enc_dec.encrypt(val?.category_id)
                                 : "",
-                            status: val?.status ? val?.status : "",
+                            status: val?.status == 0 ? "active" : "inactive",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };
@@ -164,7 +164,7 @@ var Sub_CategoryController = {
                     }
                     res.status(200).json({
                         status: true,
-                        data: response,
+                        data: response[0],
                         message: "Category details fetched successfully!",
                     });
                 })

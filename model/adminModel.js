@@ -2,7 +2,7 @@ require("dotenv").config();
 const env = process.env.ENVIRONMENT;
 const config = require("../config/config.json")[env];
 const pool = require("../config/database");
-const dbtable = config.table_prefix + "adm_users";
+const dbtable = config.table_prefix + "admin";
 const helpers = require("../utilities/helper/general_helper");
 
 var dbModel = {
@@ -30,6 +30,7 @@ var dbModel = {
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(dbtable);
         qb.release();
+        console.log(qb.last_query());
         return response;
     },
 

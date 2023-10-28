@@ -2,7 +2,7 @@ require("dotenv").config();
 const env = process.env.ENVIRONMENT;
 const config = require("../config/config.json")[env];
 const pool = require("../config/database");
-const dbtable = config.table_prefix + "jobs";
+const dbtable = config.table_prefix + "sub_categories";
 const user_kyc = config.table_prefix + "user_kyc";
 const send_money = config.table_prefix + "send_money";
 const mobile_recharge = config.table_prefix + "mobile_recharge";
@@ -107,10 +107,7 @@ var dbModel = {
                 limit.start;
         } else {
             query =
-                "select * from " +
-                dbtable +
-                final_cond +
-                " ORDER BY id DESC";
+                "select * from " + dbtable + final_cond + " ORDER BY id DESC";
         }
 
         console.log("query => ", query);

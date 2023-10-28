@@ -26,15 +26,18 @@ const fileStorage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    const allowedMimeTypes = [
-        "image/png",
-        "image/jpg",
-        "image/jpeg",
-        "application/pdf",
-        "video/mp4",
+    const allowedMimeTypes = {
+        attach_img: ["image/png", "image/jpg", "image/jpeg"],
+        attach_video: ["video/mp4"],
+        attach_file: [
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/msword",
+        ],
         // Add more mime types for additional file types
-    ];
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    };
+
+    if (allowedMimeTypes[file.fieldname].includes(file.mimetype)) {
         cb(null, true);
     } else {
         cb(null, false);
@@ -43,12 +46,20 @@ const fileFilter = (req, file, cb) => {
 
 let jobUploader = multer({
     storage: fileStorage,
-    limits: { fileSize: "20mb" }, // Adjust the file size limit as needed
+    limits: { fileSize: "100mb" }, // Adjust the file size limit as needed
     fileFilter: fileFilter,
 }).fields([
     {
-        name: "project_files",
+        name: "attach_img",
         maxCount: 5, // Set the maximum number of files allowed
+    },
+    {
+        name: "attach_video",
+        maxCount: 1, // Set the maximum number of files allowed
+    },
+    {
+        name: "attach_file",
+        maxCount: 1, // Set the maximum number of files allowed
     },
 ]);
 

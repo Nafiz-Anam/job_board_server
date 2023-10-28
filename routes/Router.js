@@ -8,8 +8,10 @@ const WithdrawRouter = require("./WithdrawRoute/WithdrawRoute");
 const PaymentRouter = require("./PaymentRoute/PaymentRoute");
 const ExpertsRouter = require("./ExpertsRoute/ExpertsRoute");
 const ClientsRouter = require("./ExpertsRoute/ExpertsRoute");
+const AdminRouter = require("./AdminRoute/AdminRoute");
 
 router.use("/user", UserRouter);
+router.use("/admin", AdminRouter);
 router.use("/experts", ExpertsRouter);
 router.use("/clients", ClientsRouter);
 router.use("/job", JobRouter);

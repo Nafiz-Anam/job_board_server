@@ -3,22 +3,27 @@ const JobModel = require("../model/jobModel");
 const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
 const STATIC_URL = process.env.STATIC_FILE_URL;
+const moment = require("moment");
 
 var JobController = {
     create: async (req, res) => {
         console.log("all_files =>", req.all_files);
         try {
-            let files = req.all_files.project_files;
-            const filesWithStaticUrl = files.map(
-                (file) => STATIC_URL + "jobs/" + file
-            );
-            const filesStringified = JSON.stringify(filesWithStaticUrl);
-            console.log(filesStringified);
+            // let files = req.all_files.project_files;
+            // const filesWithStaticUrl = files.map(
+            //     (file) => STATIC_URL + "jobs/" + file
+            // );
+            // const filesStringified = JSON.stringify(filesWithStaticUrl);
+            // console.log(filesStringified);
 
             let data = {
                 title: req.bodyString("title"),
+                posted_by: req.user.id,
                 description: req.bodyString("description"),
-                category: enc_dec.decrypt(req.bodyString("category")),
+                category_id: enc_dec.decrypt(req.bodyString("category_id")),
+                sub_category_id: enc_dec.decrypt(
+                    req.bodyString("sub_category_id")
+                ),
                 tags: req.bodyString("tags"),
                 skills: req.bodyString("skills"),
                 experience: req.bodyString("experience"),
@@ -26,7 +31,15 @@ var JobController = {
                 project_budget: req.bodyString("project_budget"),
                 min_pay_amount: req.bodyString("min_pay_amount"),
                 max_pay_amount: req.bodyString("max_pay_amount"),
-                project_files: filesStringified,
+                attach_video: req.all_files?.attach_video
+                    ? req.all_files?.attach_video[0]
+                    : "",
+                attach_file: req.all_files?.attach_file
+                    ? req.all_files?.attach_file[0]
+                    : "",
+                attach_img: req.all_files?.attach_img
+                    ? req.all_files?.attach_img[0]
+                    : "",
             };
             await JobModel.add(data)
                 .then((result) => {
@@ -54,16 +67,20 @@ var JobController = {
     update: async (req, res) => {
         let id = enc_dec.decrypt(req.bodyString("job_id"));
         try {
-            let files = req.all_files.project_files;
-            const filesWithStaticUrl = files.map(
-                (file) => STATIC_URL + "jobs/" + file
-            );
-            const filesStringified = JSON.stringify(filesWithStaticUrl);
-
+            // let files = req.all_files.project_files;
+            // const filesWithStaticUrl = files.map(
+            //     (file) => STATIC_URL + "jobs/" + file
+            // );
+            // const filesStringified = JSON.stringify(filesWithStaticUrl);
+            const currentDatetime = moment();
             let data = {
                 title: req.bodyString("title"),
+                updated_by: req.user.id,
                 description: req.bodyString("description"),
-                category: enc_dec.decrypt(req.bodyString("category")),
+                category_id: enc_dec.decrypt(req.bodyString("category_id")),
+                sub_category_id: enc_dec.decrypt(
+                    req.bodyString("sub_category_id")
+                ),
                 tags: req.bodyString("tags"),
                 skills: req.bodyString("skills"),
                 experience: req.bodyString("experience"),
@@ -71,7 +88,16 @@ var JobController = {
                 project_budget: req.bodyString("project_budget"),
                 min_pay_amount: req.bodyString("min_pay_amount"),
                 max_pay_amount: req.bodyString("max_pay_amount"),
-                project_files: filesStringified,
+                attach_video: req.all_files?.attach_video
+                    ? req.all_files?.attach_video[0]
+                    : "",
+                attach_file: req.all_files?.attach_file
+                    ? req.all_files?.attach_file[0]
+                    : "",
+                attach_img: req.all_files?.attach_img
+                    ? req.all_files?.attach_img[0]
+                    : "",
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
             await JobModel.updateDetails({ id: id }, data)
                 .then((result) => {
@@ -99,7 +125,7 @@ var JobController = {
     list: async (req, res) => {
         try {
             let limit = {
-                perpage: 0,
+                perpage: 10,
                 start: 0,
             };
             if (req.bodyString("perpage") && req.bodyString("page")) {
@@ -111,10 +137,10 @@ var JobController = {
 
             let condition = {};
 
-            const totalCount = await JobModel.get_count(condition);
+            const totalCount = await JobModel.get_count(condition, {});
             console.log(totalCount);
 
-            await JobModel.select_list(condition, limit)
+            await JobModel.select_list(condition, {}, limit)
                 .then(async (result) => {
                     console.log(result);
                     let response = [];
@@ -125,7 +151,12 @@ var JobController = {
                             description: val?.description
                                 ? val?.description
                                 : "",
-                            category: val?.category ? val?.category : "",
+                            category_id: val?.category_id
+                                ? enc_dec.encrypt(val?.category_id)
+                                : "",
+                            sub_category_id: val?.sub_category_id
+                                ? enc_dec.encrypt(val?.sub_category_id)
+                                : "",
                             tags: val?.tags ? val?.tags : "",
                             skills: val?.skills ? val?.skills : "",
                             experience: val?.experience ? val?.experience : "",
@@ -141,8 +172,12 @@ var JobController = {
                             max_pay_amount: val?.max_pay_amount
                                 ? val?.max_pay_amount
                                 : 0,
-                            project_files: val?.project_files
-                                ? val?.project_files
+                            attach_img: val?.attach_img ? val?.attach_img : "",
+                            attach_file: val?.attach_file
+                                ? val?.attach_file
+                                : "",
+                            attach_video: val?.attach_video
+                                ? val?.attach_video
                                 : "",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
