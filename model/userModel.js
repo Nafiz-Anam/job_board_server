@@ -21,7 +21,8 @@ var dbModel = {
         qb.release();
         return response;
     },
-    delete: async (condition) => {
+    delete: async (condition, table) => {
+        let dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
         let response = await qb.where(condition).delete(dbtable);
         qb.release();

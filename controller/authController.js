@@ -515,12 +515,12 @@ var AuthController = {
                 .then(async (result) => {
                     if (result) {
                         let user_data = {};
-                        if (result[0].email) {
-                            user_data.email = result[0].email;
+                        if (result[0]?.email) {
+                            user_data.email = result[0]?.email;
                         }
-                        if (result[0].mobile_no) {
+                        if (result[0]?.mobile_no) {
                             user_data.mobile_no =
-                                result[0].code + result[0].mobile_no;
+                                result[0]?.code + result[0]?.mobile_no;
                         }
 
                         let table;
@@ -837,6 +837,63 @@ var AuthController = {
                                 message: "Failed to update profile!",
                             });
                         });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: "Internal server error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+    become_expert: async (req, res) => {
+        try {
+            const currentDatetime = moment();
+            let user_data = {
+                full_name: req.bodyString("full_name"),
+                email: req.bodyString("email"),
+                mobile_no: req.bodyString("mobile_no"),
+                gender: req.bodyString("gender"),
+                birth_date: req.bodyString("birth_date"),
+                house: req.bodyString("house"),
+                street: req.bodyString("street"),
+                zip: req.bodyString("zip"),
+                city: req.bodyString("city"),
+                state: req.bodyString("state"),
+                id_type: req.bodyString("id_type"),
+                id_img1: static_url + "profile/" + req.all_files?.id_img1,
+                id_img2: static_url + "profile/" + req.all_files?.id_img2,
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+                type: "expert",
+            };
+            console.log(user_data);
+
+            UserModel.updateProfile(
+                { user_id: req.user.id, type: "client" },
+                user_data
+            )
+                .then(async (result) => {
+                    let userData = await UserModel.select(
+                        { id: req.user.id },
+                        "clients"
+                    );
+                    let data = {
+                        password: userData[0]?.password ? userData[0]?.password : "",
+                        email: userData[0]?.email ? userData[0]?.email : "",
+                        mobile_no: userData[0]?.mobile_no ? userData[0]?.mobile_no : "",
+                        status: userData[0]?.status ? userData[0]?.status : "",
+                        created_at: userData[0]?.created_at ? userData[0]?.created_at : "",
+                        updated_at: userData[0]?.updated_at ? userData[0]?.updated_at : "",
+                    };
+                    await UserModel.add(data, "expert");
+                    await UserModel.delete({ id: req.user.id }, "clients");
                 })
                 .catch((error) => {
                     console.log(error);
