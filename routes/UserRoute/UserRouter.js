@@ -44,6 +44,8 @@ router.post(
 
 router.post("/check-user", authController.check_user);
 router.post("/forget-password", authController.forget_password);
-router.post("/become-expert", authController.become_expert);
+router.post("/become-expert", authController.become_expert_request);
+router.post("/become-expert/list", authController.expert_request_list);
+router.post("/become-expert/success", authController.accept_expert_request);
 
 module.exports = router;

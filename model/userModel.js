@@ -57,9 +57,21 @@ var dbModel = {
         return response;
     },
 
-    select_list: async (date_condition, limit) => {
+    select_list: async (condition, date_condition, limit, table) => {
+        let dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
         let final_cond = " where ";
+
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
 
         if (Object.keys(date_condition).length) {
             let date_condition_str = await helpers.get_date_between_condition(
@@ -78,14 +90,20 @@ var dbModel = {
             final_cond = "";
         }
 
-        let query =
-            "select * from " +
-            dbtable +
-            final_cond +
-            " ORDER BY id DESC LIMIT " +
-            limit.perpage +
-            " OFFSET " +
-            limit.start;
+        let query;
+        if (Object.keys(limit).length) {
+            query =
+                "select * from " +
+                dbtable +
+                final_cond +
+                " ORDER BY id DESC LIMIT " +
+                limit.perpage +
+                " OFFSET " +
+                limit.start;
+        } else {
+            query =
+                "select * from " + dbtable + final_cond + " ORDER BY id DESC";
+        }
 
         console.log("query => ", query);
         let response = await qb.query(query);
@@ -113,9 +131,21 @@ var dbModel = {
         return response;
     },
 
-    get_count: async (date_condition) => {
+    get_count: async (condition, date_condition, table) => {
+        let dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
         let final_cond = " where ";
+
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
 
         if (Object.keys(date_condition).length) {
             let date_condition_str = await helpers.get_date_between_condition(
