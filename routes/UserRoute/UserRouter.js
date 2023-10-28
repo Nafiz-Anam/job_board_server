@@ -13,22 +13,22 @@ router.post(
 router.post("/password/send_otp", authController.password_send_otp);
 router.post("/test/password/send_otp", authController.test_password_send_otp);
 router.post("/resend_otp", authValidator.check_user, authController.resend_otp);
-router.post("/verify_otp", authValidator.otp_verify, authController.otp_verify);
+router.post("/verify_otp", authValidator.otp_verify, authController.otp_verify_v2);
 router.post("/password/verify_otp", authController.password_otp_verify);
 router.post(
     "/add_password",
     checkPermission,
     authValidator.add_password,
-    authController.add_password
+    authController.add_password_v2
 );
-router.post("/login", authController.login);
+router.post("/login", authController.login_v2);
 // router.post("/login", authValidator.login, authController.login);
 router.post(
     "/profile/update",
     checkPermission,
     ProfileUploader,
     authValidator.update_profile,
-    authController.update_profile
+    authController.update_profile_v2
 );
 router.post(
     "/profile/update-location",

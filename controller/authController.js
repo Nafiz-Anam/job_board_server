@@ -12,6 +12,33 @@ const email_service = require("../utilities/mail/emailService");
 let static_url = process.env.STATIC_FILE_URL;
 
 var AuthController = {
+    add_password_v2: async (req, res) => {
+        try {
+            const { password } = req.body;
+            const hashPassword = enc_dec.encrypt(password);
+
+            const user_data = { password: hashPassword };
+            const condition = { id: req.user?.id };
+
+            await UserModel.updateDetails(condition, user_data, "users");
+
+            const payload = { id: req.user?.id, type: req.user?.type };
+            const token = accessToken(payload);
+
+            return res.status(200).json({
+                status: true,
+                token,
+                message: "User password added successfully!",
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: false,
+                message: "Server side error!",
+            });
+        }
+    },
+
     add_password: async (req, res) => {
         const { password } = req.body;
         try {
@@ -64,6 +91,66 @@ var AuthController = {
             res.status(500).json({
                 status: false,
                 message: "Server side error!",
+            });
+        }
+    },
+
+    login_v2: async (req, res) => {
+        try {
+            const { user_id, password } = req.body;
+            let email = "";
+            let mobile_no = "";
+            let user_data = {};
+
+            // Regular expression pattern for email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (emailRegex.test(user_id)) {
+                email = user_id;
+                user_data.email = email;
+            } else {
+                mobile_no = user_id;
+                user_data.mobile_no = mobile_no;
+            }
+
+            const check_user_exist = await helpers.get_data_list(
+                "*",
+                "users",
+                user_data
+            );
+
+            if (check_user_exist.length === 0) {
+                return res.status(500).json({
+                    status: false,
+                    message: "User not found!",
+                });
+            }
+
+            const plain_pass = enc_dec.decrypt(check_user_exist[0].password);
+
+            if (plain_pass !== password) {
+                return res.status(500).json({
+                    status: false,
+                    message: "Wrong password!",
+                });
+            }
+
+            const payload = {
+                id: check_user_exist[0].id,
+                type: check_user_exist[0].type,
+            };
+            const token = accessToken(payload);
+
+            return res.status(200).json({
+                status: true,
+                token,
+                message: "User login successfully!",
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
             });
         }
     },
@@ -658,6 +745,60 @@ var AuthController = {
         }
     },
 
+    otp_verify_v2: async (req, res) => {
+        try {
+            const otp = req.bodyString("otp");
+            const otpToken = req.bodyString("otp_token");
+
+            const result = await CustomerModel.selectMobileOtpData({
+                otp,
+                token: otpToken,
+            });
+
+            if (result) {
+                const mobile_no = result.mobile_code + result.mobile_no;
+
+                const userData = { mobile_no };
+                const insertionResult = await UserModel.add(userData, "users");
+
+                if (insertionResult.insert_id) {
+                    const payload = {
+                        id: insertionResult?.insert_id,
+                        type: "client",
+                    };
+                    const token = accessToken(payload);
+
+                    await helpers.delete_common_entry(
+                        { otp, token: otpToken },
+                        "otps"
+                    );
+
+                    return res.status(200).json({
+                        status: true,
+                        token,
+                        message: "OTP verified. User created successfully!",
+                    });
+                } else {
+                    return res.status(500).json({
+                        status: false,
+                        message: "Error creating user.",
+                    });
+                }
+            } else {
+                return res.status(500).json({
+                    status: false,
+                    message: "Wrong OTP, Try again!",
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+
     check_user: async (req, res) => {
         try {
             let check_mobile_exist_client;
@@ -759,6 +900,39 @@ var AuthController = {
             res.status(500).json({
                 status: false,
                 message: error.message,
+            });
+        }
+    },
+
+    update_profile_v2: async (req, res) => {
+        try {
+            const currentDatetime = moment();
+
+            const user_data = {
+                full_name: req.bodyString("full_name"),
+                email: req.bodyString("email"),
+                mobile_no: req.bodyString("mobile_no"),
+                gender: req.bodyString("gender"),
+                birth_date: req.bodyString("birth_date"),
+                address: req.bodyString("address"),
+                profile_img:
+                    static_url + "profile/" + req.all_files?.profile_img,
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+
+            const condition = { id: req.user.id, type: req.user.type };
+
+            await UserModel.updateDetails(condition, user_data, "users");
+
+            return res.status(200).json({
+                status: true,
+                message: "Profile updated successfully!",
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
             });
         }
     },
@@ -941,33 +1115,26 @@ var AuthController = {
     update_location: async (req, res) => {
         try {
             const currentDatetime = moment();
-            let user_data = {
+
+            const user_data = {
                 location: req.bodyString("location"),
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
-            console.log(user_data);
 
-            UserModel.updateProfile(
-                { user_id: req.user.id, type: req.user.type },
-                user_data
-            )
-                .then((result) => {
-                    console.log(result);
-                    res.status(200).json({
-                        status: true,
-                        message: "Profile location updated successfully!",
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
+            const condition = { id: req.user.id, type: req.user.type };
+
+            await UserModel.updateDetails(condition, user_data, "users");
+
+            console.log("Profile location updated successfully!");
+
+            return res.status(200).json({
+                status: true,
+                message: "Profile location updated successfully!",
+            });
         } catch (error) {
-            console.log(error);
-            res.status(500).json({
+            console.error(error);
+
+            return res.status(500).json({
                 status: false,
                 message: "Internal server error!",
             });
@@ -1009,42 +1176,36 @@ var AuthController = {
 
     profile_details: async (req, res) => {
         try {
-            let user_id = req.user.id;
-            UserModel.select_profile({ user_id: user_id, type: req.user.type })
-                .then((result) => {
-                    let profile_data;
-                    for (let val of result) {
-                        profile_data = {
-                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
-                            profile_img: val?.profile_img
-                                ? val?.profile_img
-                                : "",
-                            full_name: val?.full_name ? val?.full_name : "",
-                            email: val?.email ? val?.email : "",
-                            birth_date: val?.birth_date ? val?.birth_date : "",
-                            gender: val?.gender ? val?.gender : "",
-                            mobile_no: val?.mobile_no ? val?.mobile_no : "",
-                            address: val?.address ? val?.address : "",
-                            location: val?.location ? val?.location : "",
-                            created_at: val?.created_at ? val?.created_at : "",
-                            updated_at: val?.updated_at ? val?.updated_at : "",
-                        };
-                    }
-                    res.status(200).json({
-                        status: true,
-                        data: profile_data,
-                        message: "Profile fetched successfully!",
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
+            const id = req.user?.id;
+            const type = req.user?.type;
+
+            const result = await UserModel.select({ id, type }, "users");
+
+            let profile_data = {};
+
+            for (let val of result) {
+                profile_data = {
+                    id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                    profile_img: val?.profile_img ? val?.profile_img : "",
+                    full_name: val?.full_name ? val?.full_name : "",
+                    email: val?.email ? val?.email : "",
+                    birth_date: val?.birth_date ? val?.birth_date : "",
+                    gender: val?.gender ? val?.gender : "",
+                    mobile_no: val?.mobile_no ? val?.mobile_no : "",
+                    address: val?.address ? val?.address : "",
+                    location: val?.location ? val?.location : "",
+                    created_at: val?.created_at ? val?.created_at : "",
+                    updated_at: val?.updated_at ? val?.updated_at : "",
+                };
+            }
+
+            res.status(200).json({
+                status: true,
+                data: profile_data,
+                message: "Profile fetched successfully!",
+            });
         } catch (error) {
-            console.log(error);
+            console.error(error);
             res.status(500).json({
                 status: false,
                 message: "Internal server error!",
@@ -1067,7 +1228,11 @@ var AuthController = {
 
             let condition = { expert_request: 1 };
 
-            const totalCount = await UserModel.get_count(condition, {}, "user_details");
+            const totalCount = await UserModel.get_count(
+                condition,
+                {},
+                "user_details"
+            );
             console.log(totalCount);
 
             await UserModel.select_list(condition, {}, limit, "user_details")

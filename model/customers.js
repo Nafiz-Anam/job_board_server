@@ -7,7 +7,7 @@ const dbtable = config.table_prefix + "customers";
 const logstable = config.table_prefix + "customer_logs";
 const temtable = config.table_prefix + "customer_temp";
 const otptable = config.table_prefix + "email_otp_sent";
-const mobileotptable = config.table_prefix + "mobile_otp";
+const mobileotptable = config.table_prefix + "otps";
 const securitytable = config.table_prefix + "customers_answer";
 const transactiontable = config.table_prefix + "orders";
 const helpers = require("../utilities/helper/general_helper");
@@ -381,7 +381,7 @@ var dbModel = {
         if (final_cond == " where ") {
             final_cond = "";
         }
-        let query = "select * from mx_mobile_otp" + final_cond;
+        let query = "select * from mx_otps" + final_cond;
         console.log("query => ", query);
         let response = await qb.query(query);
         qb.release();

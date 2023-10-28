@@ -195,6 +195,7 @@ var dbModel = {
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(dbtable);
         qb.release();
+        console.log(qb.last_query());
         return response;
     },
     updateProfile: async (condition, data) => {
