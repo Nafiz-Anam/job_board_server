@@ -82,6 +82,13 @@ var helpers = {
         return response;
     },
 
+    checkExistence: async (table, field, value) => {
+        const result = await helpers.get_data_list("*", table, {
+            [field]: value,
+        });
+        return result.length > 0;
+    },
+
     delete_common_entry: async (condition, dbtable) => {
         const qb = await pool.get_connection();
         const response = await qb.delete(

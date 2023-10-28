@@ -2,7 +2,9 @@ const router = require("express").Router();
 const authController = require("../../controller/authController");
 const authValidator = require("../../utilities/validations/authValidation");
 const checkPermission = require("../../utilities/tokenmanager/checkpermission");
+const checkAdminToken = require("../../utilities/tokenmanager/checkAdminToken");
 const ProfileUploader = require("../../uploads/ProfileUploader");
+const ExpertUploader = require("../../uploads/ExpertUploader");
 
 router.post("/send_otp", authValidator.check_user, authController.send_otp);
 router.post(
@@ -10,10 +12,14 @@ router.post(
     authValidator.check_user,
     authController.test_send_otp
 );
-router.post("/password/send_otp", authController.password_send_otp);
+router.post("/password/send_otp", authController.password_send_otp_v2);
 router.post("/test/password/send_otp", authController.test_password_send_otp);
 router.post("/resend_otp", authValidator.check_user, authController.resend_otp);
-router.post("/verify_otp", authValidator.otp_verify, authController.otp_verify_v2);
+router.post(
+    "/verify_otp",
+    authValidator.otp_verify,
+    authController.otp_verify_v2
+);
 router.post("/password/verify_otp", authController.password_otp_verify);
 router.post(
     "/add_password",
@@ -43,9 +49,21 @@ router.post(
 );
 
 router.post("/check-user", authController.check_user);
-router.post("/forget-password", authController.forget_password);
-router.post("/become-expert", authController.become_expert_request);
-router.post("/become-expert/list", authController.expert_request_list);
-router.post("/become-expert/success", authController.accept_expert_request);
+router.post(
+    "/become-expert",
+    checkPermission,
+    ExpertUploader,
+    authController.become_expert_request
+);
+router.post(
+    "/become-expert/list",
+    checkAdminToken,
+    authController.expert_request_list
+);
+router.post(
+    "/become-expert/update",
+    checkAdminToken,
+    authController.update_expert_request
+);
 
 module.exports = router;

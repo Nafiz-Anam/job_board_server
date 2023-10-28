@@ -6,95 +6,11 @@ const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
 const otpSender = require("../utilities/sms/sentotp");
 const SequenceUUID = require("sequential-uuid");
-const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const email_service = require("../utilities/mail/emailService");
 let static_url = process.env.STATIC_FILE_URL;
 
 var AuthController = {
-    add_password_v2: async (req, res) => {
-        try {
-            const { password } = req.body;
-            const hashPassword = enc_dec.encrypt(password);
-
-            const user_data = { password: hashPassword };
-            const condition = { id: req.user?.id };
-
-            await UserModel.updateDetails(condition, user_data, "users");
-
-            const payload = { id: req.user?.id, type: req.user?.type };
-            const token = accessToken(payload);
-
-            return res.status(200).json({
-                status: true,
-                token,
-                message: "User password added successfully!",
-            });
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({
-                status: false,
-                message: "Server side error!",
-            });
-        }
-    },
-
-    add_password: async (req, res) => {
-        const { password } = req.body;
-        try {
-            let table = "";
-            let user_data = {};
-
-            if (req.user.type === "client") {
-                table = "clients";
-            } else {
-                table = "experts";
-            }
-
-            try {
-                let hashPassword = enc_dec.encrypt(password);
-                user_data.password = hashPassword;
-                await UserModel.updateDetails(
-                    { id: req.user.id },
-                    user_data,
-                    table
-                )
-                    .then(async (result) => {
-                        // jwt token
-                        let payload = {
-                            id: req.user.id,
-                            type: req.user.type,
-                        };
-                        const token = accessToken(payload);
-                        res.status(200).json({
-                            status: true,
-                            token: token,
-                            message: "User password added successfully!",
-                        });
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        res.status(500).json({
-                            status: false,
-                            message: "Failed to add user password!",
-                        });
-                    });
-            } catch (error) {
-                console.log(error);
-                res.status(500).json({
-                    status: false,
-                    message: "Server side error!",
-                });
-            }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: "Server side error!",
-            });
-        }
-    },
-
     login_v2: async (req, res) => {
         try {
             const { user_id, password } = req.body;
@@ -151,148 +67,6 @@ var AuthController = {
             return res.status(500).json({
                 status: false,
                 message: "Internal server error!",
-            });
-        }
-    },
-
-    login: async (req, res) => {
-        const { user_id, password } = req.body;
-        try {
-            let table;
-            let email = "";
-            let mobile_no = "";
-            let user_data = {};
-            // Regular expression pattern for email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (emailRegex.test(user_id)) {
-                // The email is valid
-                email = user_id;
-                user_data.email = email;
-            } else {
-                // The email is invalid
-                mobile_no = user_id;
-                user_data.mobile_no = mobile_no;
-            }
-
-            let expert = await helpers.get_data_list("*", "experts", user_data);
-            let client = await helpers.get_data_list("*", "clients", user_data);
-
-            if (expert.length) {
-                table = "experts";
-            } else if (client.length) {
-                table = "clients";
-            } else {
-                res.status(500).json({
-                    status: false,
-                    message: "User not found!",
-                });
-            }
-
-            try {
-                let check_user_exist = await helpers.get_data_list(
-                    "*",
-                    table,
-                    user_data
-                );
-                // console.log("hashPassword", hashPassword);
-                let plain_pass = enc_dec.decrypt(check_user_exist[0].password);
-
-                if (plain_pass !== password) {
-                    res.status(500).json({
-                        status: false,
-                        message: "Wrong password!",
-                    });
-                } else {
-                    await UserModel.select(user_data, table)
-                        .then(async (result) => {
-                            // jwt token
-                            let payload = {
-                                id: result[0].id,
-                                type: table == "experts" ? "expert" : "client",
-                            };
-                            const token = accessToken(payload);
-                            res.status(200).json({
-                                status: true,
-                                token: token,
-                                message: "User login successfully!",
-                            });
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            res.status(500).json({
-                                status: false,
-                                message: "User login failed!",
-                            });
-                        });
-                }
-            } catch (error) {
-                console.log(error);
-                res.status(500).json({
-                    status: false,
-                    message: error.message,
-                });
-            }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: error.message,
-            });
-        }
-    },
-
-    test_send_otp: async (req, res) => {
-        const { mobile_code, mobile_no } = req.body;
-        try {
-            let otp = await helpers.generateOtp(6);
-            const title = "Mr. Xpert";
-            const mobile_number = `${mobile_code}${mobile_no}`;
-
-            const welcomeMessage =
-                "Welcome to " +
-                title +
-                "! Your verification code is: " +
-                otp +
-                ". Do not share it with anyone.";
-
-            console.log("mobile_number", mobile_number);
-            console.log("welcomeMessage", welcomeMessage);
-
-            // console.log("sms res =>", data);
-            const uuid = new SequenceUUID({
-                valid: true,
-                dashes: true,
-                unsafeBuffer: true,
-            });
-
-            let token = uuid.generate();
-            let ins_data = {
-                mobile_code: mobile_code,
-                mobile_no: mobile_no,
-                otp: otp,
-                token: token,
-            };
-            CustomerModel.addMobileOTP(ins_data)
-                .then(async (result) => {
-                    res.status(200).json({
-                        status: true,
-                        token: token,
-                        otp: welcomeMessage,
-                        message: "Otp sent on your mobile number",
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: error.message,
-                    });
-                });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: error.message,
             });
         }
     },
@@ -363,14 +137,17 @@ var AuthController = {
         }
     },
 
-    test_password_send_otp: async (req, res) => {
+    test_send_otp: async (req, res) => {
         const { mobile_code, mobile_no } = req.body;
         try {
             let otp = await helpers.generateOtp(6);
+            const title = "Mr. Xpert";
             const mobile_number = `${mobile_code}${mobile_no}`;
 
             const welcomeMessage =
-                "Your verification code is: " +
+                "Welcome to " +
+                title +
+                "! Your verification code is: " +
                 otp +
                 ". Do not share it with anyone.";
 
@@ -416,6 +193,246 @@ var AuthController = {
         }
     },
 
+    resend_otp: async (req, res) => {
+        const { mobile_code, mobile_no } = req.body;
+
+        try {
+            const otp = await helpers.generateOtp(6);
+            const title = "Mr. Xpert";
+            const mobile_number = `${mobile_code}${mobile_no}`;
+            const welcomeMessage = `Welcome to ${title}! Your verification code is: ${otp}. Do not share it with anyone.`;
+
+            const data = await otpSender(mobile_number, welcomeMessage);
+
+            const condition = {
+                mobile_code: mobile_code,
+                mobile_no: mobile_no,
+            };
+
+            await helpers.delete_common_entry(condition, "otps");
+
+            const uuid = new SequenceUUID({
+                valid: true,
+                dashes: true,
+                unsafeBuffer: true,
+            });
+            const token = uuid.generate();
+
+            const ins_data = {
+                mobile_code: mobile_code,
+                mobile_no: mobile_no,
+                otp: otp,
+                token: token,
+            };
+
+            const result = await CustomerModel.addMobileOTP(ins_data);
+
+            res.status(200).json({
+                status: true,
+                token: token,
+                message: "Otp sent on your mobile number",
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                status: false,
+                message: error.message,
+            });
+        }
+    },
+
+    otp_verify_v2: async (req, res) => {
+        try {
+            const otp = req.bodyString("otp");
+            const otpToken = req.bodyString("otp_token");
+
+            const result = await CustomerModel.selectMobileOtpData({
+                otp,
+                token: otpToken,
+            });
+
+            if (result) {
+                const mobile_no = result.mobile_code + result.mobile_no;
+
+                const userData = { mobile_no };
+                const insertionResult = await UserModel.add(userData, "users");
+
+                if (insertionResult.insert_id) {
+                    const payload = {
+                        id: insertionResult?.insert_id,
+                        type: "client",
+                    };
+                    const token = accessToken(payload);
+
+                    await helpers.delete_common_entry(
+                        { otp, token: otpToken },
+                        "otps"
+                    );
+
+                    return res.status(200).json({
+                        status: true,
+                        token,
+                        message: "OTP verified. User created successfully!",
+                    });
+                } else {
+                    return res.status(500).json({
+                        status: false,
+                        message: "Error creating user.",
+                    });
+                }
+            } else {
+                return res.status(500).json({
+                    status: false,
+                    message: "Wrong OTP, Try again!",
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+
+    add_password_v2: async (req, res) => {
+        try {
+            const { password } = req.body;
+            const hashPassword = enc_dec.encrypt(password);
+
+            const user_data = { password: hashPassword };
+            const condition = { id: req.user?.id };
+
+            await UserModel.updateDetails(condition, user_data, "users");
+
+            const payload = { id: req.user?.id, type: req.user?.type };
+            const token = accessToken(payload);
+
+            return res.status(200).json({
+                status: true,
+                token,
+                message: "User password added successfully!",
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: false,
+                message: "Server side error!",
+            });
+        }
+    },
+
+    check_user: async (req, res) => {
+        try {
+            const mobile_no = req.bodyString("mobile_no");
+            const email = req.bodyString("email");
+
+            if (!mobile_no && !email) {
+                return res.status(400).json({
+                    status: false,
+                    error: "Please provide either mobile number or email!",
+                });
+            }
+
+            const check_mobile_exist = await helpers.checkExistence(
+                "users",
+                "mobile_no",
+                mobile_no
+            );
+            const check_email_exist = await helpers.checkExistence(
+                "users",
+                "email",
+                email
+            );
+
+            if (check_mobile_exist || check_email_exist) {
+                return res.status(200).json({
+                    status: true,
+                    error: check_mobile_exist || check_email_exist,
+                });
+            } else {
+                return res.status(500).json({
+                    status: false,
+                    error: `No user found with ${
+                        mobile_no ? "this mobile number" : "this email address"
+                    }!`,
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                error: "Server side error!",
+            });
+        }
+    },
+
+    password_send_otp_v2: async (req, res) => {
+        const { mobile_code, mobile_no, email, type } = req.body;
+
+        try {
+            const otp = await helpers.generateOtp(6);
+
+            const message = `Your verification code is: ${otp}. Do not share it with anyone.`;
+
+            let target, sender;
+
+            if (type === "mobile") {
+                target = `${mobile_code}${mobile_no}`;
+                sender = otpSender;
+            } else if (type === "email") {
+                target = email;
+                sender = email_service;
+            } else {
+                throw new Error(
+                    "Invalid 'type' provided. Use 'mobile' or 'email'."
+                );
+            }
+
+            sender(target, message)
+                .then(async (data) => {
+                    const uuid = new SequenceUUID({
+                        valid: true,
+                        dashes: true,
+                        unsafeBuffer: true,
+                    });
+
+                    const token = uuid.generate();
+                    const ins_data = {
+                        [type === "mobile" ? "mobile_code" : "email"]:
+                            type === "mobile" ? mobile_code : email,
+                        [type === "mobile" ? "mobile_no" : "otp"]:
+                            type === "mobile" ? mobile_no : otp,
+                        token: token,
+                    };
+
+                    await CustomerModel.addMobileOTP(ins_data);
+
+                    res.status(200).json({
+                        status: true,
+                        token: token,
+                        message: `OTP sent to ${
+                            type === "mobile"
+                                ? "your mobile number"
+                                : "your email"
+                        }`,
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: error.message,
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: error.message,
+            });
+        }
+    },
+
     password_send_otp: async (req, res) => {
         const { mobile_code, mobile_no, email, type } = req.body;
         try {
@@ -425,9 +442,6 @@ var AuthController = {
                 "Your verification code is: " +
                 otp +
                 ". Do not share it with anyone.";
-
-            console.log("mobile_number", mobile_number);
-            console.log("welcomeMessage", welcomeMessage);
 
             if (type == "mobile") {
                 await otpSender(mobile_number, welcomeMessage)
@@ -445,7 +459,6 @@ var AuthController = {
                             mobile_no: mobile_no,
                             otp: otp,
                             token: token,
-                            sms_id: data,
                         };
                         CustomerModel.addMobileOTP(ins_data)
                             .then(async (result) => {
@@ -519,62 +532,42 @@ var AuthController = {
         }
     },
 
-    resend_otp: async (req, res) => {
+    test_password_send_otp: async (req, res) => {
         const { mobile_code, mobile_no } = req.body;
         try {
             let otp = await helpers.generateOtp(6);
-            const title = "Mr. Xpert";
             const mobile_number = `${mobile_code}${mobile_no}`;
 
             const welcomeMessage =
-                "Welcome to " +
-                title +
-                "! Your verification code is: " +
+                "Your verification code is: " +
                 otp +
                 ". Do not share it with anyone.";
 
             console.log("mobile_number", mobile_number);
             console.log("welcomeMessage", welcomeMessage);
 
-            await otpSender(mobile_number, welcomeMessage)
-                .then(async (data) => {
-                    // console.log("sms res =>", data);
-                    // delete old OTP entry from table
-                    let condition = {
-                        mobile_code: mobile_code,
-                        mobile_no: mobile_no,
-                    };
-                    await helpers.delete_common_entry(condition, "mobile_otp");
+            // console.log("sms res =>", data);
+            const uuid = new SequenceUUID({
+                valid: true,
+                dashes: true,
+                unsafeBuffer: true,
+            });
 
-                    // adding new otp entry
-                    const uuid = new SequenceUUID({
-                        valid: true,
-                        dashes: true,
-                        unsafeBuffer: true,
-                    });
-                    let token = uuid.generate();
-                    let ins_data = {
-                        mobile_code: mobile_code,
-                        mobile_no: mobile_no,
-                        otp: otp,
+            let token = uuid.generate();
+            let ins_data = {
+                mobile_code: mobile_code,
+                mobile_no: mobile_no,
+                otp: otp,
+                token: token,
+            };
+            CustomerModel.addMobileOTP(ins_data)
+                .then(async (result) => {
+                    res.status(200).json({
+                        status: true,
                         token: token,
-                        sms_id: data,
-                    };
-                    CustomerModel.addMobileOTP(ins_data)
-                        .then(async (result) => {
-                            res.status(200).json({
-                                status: true,
-                                token: token,
-                                message: "Otp sent on your mobile number",
-                            });
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            res.status(500).json({
-                                status: false,
-                                message: error.message,
-                            });
-                        });
+                        otp: welcomeMessage,
+                        message: "Otp sent on your mobile number",
+                    });
                 })
                 .catch((error) => {
                     console.log(error);
@@ -594,7 +587,7 @@ var AuthController = {
 
     password_otp_verify: async (req, res) => {
         try {
-            let condition = {
+            const condition = {
                 otp: req.bodyString("otp"),
                 token: req.bodyString("otp_token"),
             };
@@ -609,48 +602,27 @@ var AuthController = {
             }
 
             let user_data = {};
-            if (result.email) {
+            if (result?.email) {
                 user_data.email = result.email;
             }
-            if (result.mobile_no) {
+            if (result?.mobile_no) {
                 user_data.mobile_no = result.code + result.mobile_no;
             }
 
-            let table;
-            const client = await helpers.get_data_list(
-                "*",
-                "clients",
-                user_data
-            );
-            const expert = await helpers.get_data_list(
-                "*",
-                "experts",
-                user_data
-            );
-
-            if (client.length) {
-                table = "clients";
-            } else if (expert.length) {
-                table = "experts";
-            } else {
-                return res.status(500).json({
-                    status: false,
-                    message: "User not found!",
-                });
-            }
+            const table = "users";
 
             const resultUser = await UserModel.select(user_data, table);
 
             if (resultUser.length) {
                 // jwt token
-                let payload = {
+                const payload = {
                     id: resultUser[0].id,
-                    type: table === "clients" ? "client" : "expert",
+                    type: resultUser[0].type,
                 };
                 const token = accessToken(payload);
 
                 // delete OTP entry from table
-                await helpers.delete_common_entry(condition, "mobile_otp");
+                await helpers.delete_common_entry(condition, "otps");
 
                 return res.status(200).json({
                     status: true,
@@ -668,238 +640,6 @@ var AuthController = {
             return res.status(500).json({
                 status: false,
                 message: "Internal server error!",
-            });
-        }
-    },
-
-    otp_verify: async (req, res) => {
-        try {
-            let condition = {
-                otp: req.bodyString("otp"),
-                token: req.bodyString("otp_token"),
-            };
-            CustomerModel.selectMobileOtpData(condition)
-                .then(async (result) => {
-                    if (result) {
-                        let table = "clients";
-                        let userData = {
-                            mobile_no: result.mobile_code + result.mobile_no,
-                        };
-                        await UserModel.add(userData, table)
-                            .then(async (result) => {
-                                let profile_data = {
-                                    user_id: result.insert_id,
-                                    type: "client",
-                                    mobile_no: userData.mobile_no,
-                                };
-                                // user details
-                                await UserModel.addProfile(profile_data);
-
-                                // jwt token
-                                let payload = {
-                                    id: result.insert_id,
-                                    type: "client",
-                                };
-                                const token = accessToken(payload);
-
-                                // delete OTP entry from table
-                                await helpers.delete_common_entry(
-                                    condition,
-                                    "mobile_otp"
-                                );
-
-                                res.status(200).json({
-                                    status: true,
-                                    token: token,
-                                    message:
-                                        "OTP verified. User created successfully!",
-                                });
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                                res.status(500).json({
-                                    status: false,
-                                    message: "Internal server error!",
-                                });
-                            });
-                    } else {
-                        res.status(500).json({
-                            status: false,
-                            message: "Wrong OTP, Try again!",
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    otp_verify_v2: async (req, res) => {
-        try {
-            const otp = req.bodyString("otp");
-            const otpToken = req.bodyString("otp_token");
-
-            const result = await CustomerModel.selectMobileOtpData({
-                otp,
-                token: otpToken,
-            });
-
-            if (result) {
-                const mobile_no = result.mobile_code + result.mobile_no;
-
-                const userData = { mobile_no };
-                const insertionResult = await UserModel.add(userData, "users");
-
-                if (insertionResult.insert_id) {
-                    const payload = {
-                        id: insertionResult?.insert_id,
-                        type: "client",
-                    };
-                    const token = accessToken(payload);
-
-                    await helpers.delete_common_entry(
-                        { otp, token: otpToken },
-                        "otps"
-                    );
-
-                    return res.status(200).json({
-                        status: true,
-                        token,
-                        message: "OTP verified. User created successfully!",
-                    });
-                } else {
-                    return res.status(500).json({
-                        status: false,
-                        message: "Error creating user.",
-                    });
-                }
-            } else {
-                return res.status(500).json({
-                    status: false,
-                    message: "Wrong OTP, Try again!",
-                });
-            }
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({
-                status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    check_user: async (req, res) => {
-        try {
-            let check_mobile_exist_client;
-            let check_mobile_exist_expert;
-            let check_email_exist_client;
-            let check_email_exist_expert;
-            if (req.bodyString("mobile_no")) {
-                check_mobile_exist_client = await helpers.get_data_list(
-                    "*",
-                    "clients",
-                    {
-                        mobile_no: req.bodyString("mobile_no"),
-                    }
-                );
-                check_mobile_exist_expert = await helpers.get_data_list(
-                    "*",
-                    "experts",
-                    {
-                        mobile_no: req.bodyString("mobile_no"),
-                    }
-                );
-                if (check_mobile_exist_expert.length > 0) {
-                    res.status(200).json({
-                        status: true,
-                        error: "User found with this mobile number",
-                    });
-                } else if (check_mobile_exist_client.length > 0) {
-                    res.status(200).json({
-                        status: true,
-                        error: "User found with this mobile number",
-                    });
-                } else {
-                    res.status(500).json({
-                        status: false,
-                        error: "No user found with this mobile number!",
-                    });
-                }
-            }
-
-            if (req.bodyString("email")) {
-                check_email_exist_client = await helpers.get_data_list(
-                    "*",
-                    "clients",
-                    {
-                        email: req.bodyString("email"),
-                    }
-                );
-
-                check_email_exist_expert = await helpers.get_data_list(
-                    "*",
-                    "experts",
-                    {
-                        email: req.bodyString("email"),
-                    }
-                );
-
-                if (check_email_exist_expert.length > 0) {
-                    res.status(200).json({
-                        status: true,
-                        error: "User found with this email address",
-                    });
-                } else if (check_email_exist_client.length > 0) {
-                    res.status(200).json({
-                        status: true,
-                        error: "User found with this email address",
-                    });
-                } else {
-                    res.status(500).json({
-                        status: false,
-                        error: "No user found with this email address!",
-                    });
-                }
-            }
-        } catch (error) {
-            res.status(500).json({
-                status: false,
-                error: "Server side error!",
-            });
-        }
-    },
-
-    forget_password: async (req, res) => {
-        const { password } = req.body;
-        try {
-            let check_user_exist = await helpers.get_data_list("*", "users", {
-                id: req.user.id,
-                deleted: 0,
-            });
-            console.log("hashPassword", hashPassword);
-            let plain_pa = enc_dec.decrypt(check_user_exist[0].password);
-            if (plain_pa !== password) {
-                res.status(500).json({
-                    status: false,
-                    message: "Wrong password!",
-                });
-            }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: error.message,
             });
         }
     },
@@ -937,63 +677,29 @@ var AuthController = {
         }
     },
 
-    update_profile: async (req, res) => {
+    update_location: async (req, res) => {
         try {
             const currentDatetime = moment();
-            let user_data = {
-                full_name: req.bodyString("full_name"),
-                email: req.bodyString("email"),
-                mobile_no: req.bodyString("mobile_no"),
-                gender: req.bodyString("gender"),
-                birth_date: req.bodyString("birth_date"),
-                address: req.bodyString("address"),
-                profile_img:
-                    static_url + "profile/" + req.all_files?.profile_img,
+
+            const user_data = {
+                location: req.bodyString("location"),
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
-            console.log(user_data);
 
-            UserModel.updateProfile(
-                { user_id: req.user.id, type: req.user.type },
-                user_data
-            )
-                .then((result) => {
-                    let table;
-                    if (req.user.type === "client") {
-                        table = "clients";
-                    } else {
-                        table = "experts";
-                    }
+            const condition = { id: req.user.id, type: req.user.type };
 
-                    UserModel.updateDetails(
-                        { id: req.user.id },
-                        { email: req.bodyString("email") },
-                        table
-                    )
-                        .then((result) => {
-                            res.status(200).json({
-                                status: true,
-                                message: "Profile updated successfully!",
-                            });
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            res.status(500).json({
-                                status: false,
-                                message: "Failed to update profile!",
-                            });
-                        });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
+            await UserModel.updateDetails(condition, user_data, "users");
+
+            console.log("Profile location updated successfully!");
+
+            return res.status(200).json({
+                status: true,
+                message: "Profile location updated successfully!",
+            });
         } catch (error) {
-            console.log(error);
-            res.status(500).json({
+            console.error(error);
+
+            return res.status(500).json({
                 status: false,
                 message: "Internal server error!",
             });
@@ -1036,143 +742,6 @@ var AuthController = {
             console.error(error);
 
             return res.status(500).json({
-                status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    accept_expert_request: async (req, res) => {
-        try {
-            const currentDatetime = moment();
-
-            const user_id = enc_dec.decrypt(req.bodyString("user_id"));
-            const expert_request = req.bodyString("status");
-
-            const user_data = {
-                expert_request,
-                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
-            };
-
-            if (expert_request == 0) {
-                user_data.type = "expert";
-            }
-
-            await UserModel.updateDetails(
-                { id: user_id, type: "client" },
-                user_data,
-                "users"
-            );
-
-            return res.status(200).json({
-                status: true,
-                message: "Request status changed successfully",
-            });
-        } catch (error) {
-            console.error(error);
-
-            return res.status(500).json({
-                status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    update_location: async (req, res) => {
-        try {
-            const currentDatetime = moment();
-
-            const user_data = {
-                location: req.bodyString("location"),
-                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
-            };
-
-            const condition = { id: req.user.id, type: req.user.type };
-
-            await UserModel.updateDetails(condition, user_data, "users");
-
-            console.log("Profile location updated successfully!");
-
-            return res.status(200).json({
-                status: true,
-                message: "Profile location updated successfully!",
-            });
-        } catch (error) {
-            console.error(error);
-
-            return res.status(500).json({
-                status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    change_phone: async (req, res) => {
-        try {
-            const currentDatetime = moment();
-            let user_data = {
-                mobile_no: req.bodyString("new_phone"),
-                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
-            };
-            console.log(user_data);
-
-            UserModel.updateProfile({ user_id: req.user.id }, user_data)
-                .then((result) => {
-                    console.log(result);
-                    res.status(200).json({
-                        status: true,
-                        message: "Phone updated successfully!",
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    profile_details: async (req, res) => {
-        try {
-            const id = req.user?.id;
-            const type = req.user?.type;
-
-            const result = await UserModel.select({ id, type }, "users");
-
-            let profile_data = {};
-
-            for (let val of result) {
-                profile_data = {
-                    id: val?.id ? enc_dec.encrypt(val?.id) : "",
-                    profile_img: val?.profile_img ? val?.profile_img : "",
-                    full_name: val?.full_name ? val?.full_name : "",
-                    email: val?.email ? val?.email : "",
-                    birth_date: val?.birth_date ? val?.birth_date : "",
-                    gender: val?.gender ? val?.gender : "",
-                    mobile_no: val?.mobile_no ? val?.mobile_no : "",
-                    address: val?.address ? val?.address : "",
-                    location: val?.location ? val?.location : "",
-                    created_at: val?.created_at ? val?.created_at : "",
-                    updated_at: val?.updated_at ? val?.updated_at : "",
-                };
-            }
-
-            res.status(200).json({
-                status: true,
-                data: profile_data,
-                message: "Profile fetched successfully!",
-            });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({
                 status: false,
                 message: "Internal server error!",
             });
@@ -1252,6 +821,116 @@ var AuthController = {
                 status: false,
                 data: {},
                 error: "Server side error!",
+            });
+        }
+    },
+
+    update_expert_request: async (req, res) => {
+        try {
+            const currentDatetime = moment();
+
+            const user_id = enc_dec.decrypt(req.bodyString("user_id"));
+            const expert_request = req.bodyString("status");
+
+            const user_data = {
+                expert_request,
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+
+            if (expert_request == 0) {
+                user_data.type = "expert";
+            }
+
+            await UserModel.updateDetails(
+                { id: user_id, type: "client" },
+                user_data,
+                "users"
+            );
+
+            return res.status(200).json({
+                status: true,
+                message: "Request status changed successfully",
+            });
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+
+    profile_details: async (req, res) => {
+        try {
+            const id = req.user?.id;
+            const type = req.user?.type;
+
+            const result = await UserModel.select({ id, type }, "users");
+
+            let profile_data = {};
+
+            if (result.length > 0) {
+                const val = result[0];
+
+                profile_data = {
+                    id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                    profile_img: val?.profile_img ? val?.profile_img : "",
+                    full_name: val?.full_name ? val?.full_name : "",
+                    email: val?.email ? val?.email : "",
+                    birth_date: val?.birth_date ? val?.birth_date : "",
+                    gender: val?.gender ? val?.gender : "",
+                    mobile_no: val?.mobile_no ? val?.mobile_no : "",
+                    address: val?.address ? val?.address : "",
+                    location: val?.location ? val?.location : "",
+                    created_at: val?.created_at ? val?.created_at : "",
+                    updated_at: val?.updated_at ? val?.updated_at : "",
+                };
+            }
+
+            res.status(200).json({
+                status: true,
+                data: profile_data,
+                message: "Profile fetched successfully!",
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+
+    change_phone: async (req, res) => {
+        try {
+            const currentDatetime = moment();
+            let user_data = {
+                mobile_no: req.bodyString("new_phone"),
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+            console.log(user_data);
+
+            UserModel.updateProfile({ user_id: req.user.id }, user_data)
+                .then((result) => {
+                    console.log(result);
+                    res.status(200).json({
+                        status: true,
+                        message: "Phone updated successfully!",
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        status: false,
+                        message: "Internal server error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Internal server error!",
             });
         }
     },
