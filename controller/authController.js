@@ -515,12 +515,13 @@ var AuthController = {
                 .then(async (result) => {
                     if (result) {
                         let user_data = {};
-                        if (result[0]?.email) {
-                            user_data.email = result[0]?.email;
+                        if (result?.email) {
+                            user_data.email = result?.email;
                         }
-                        if (result[0]?.mobile_no) {
+                        if (result?.mobile_no) {
+
                             user_data.mobile_no =
-                                result[0]?.code + result[0]?.mobile_no;
+                                result?.code + result?.mobile_no;
                         }
 
                         let table;

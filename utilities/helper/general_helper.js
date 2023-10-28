@@ -77,10 +77,11 @@ var helpers = {
             .select(selection)
             .where(condition)
             .get(config.table_prefix + dbtable);
-        qb.release();
         console.log(qb.last_query());
+        qb.release();
         return response;
     },
+
     delete_common_entry: async (condition, dbtable) => {
         const qb = await pool.get_connection();
         const response = await qb.delete(
