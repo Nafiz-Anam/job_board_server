@@ -511,97 +511,74 @@ var AuthController = {
                 otp: req.bodyString("otp"),
                 token: req.bodyString("otp_token"),
             };
-            CustomerModel.selectMobileOtpData(condition)
-                .then(async (result) => {
-                    if (result) {
-                        let user_data = {};
-                        if (result?.email) {
-                            user_data.email = result?.email;
-                        }
-                        if (result?.mobile_no) {
 
-                            user_data.mobile_no =
-                                result?.code + result?.mobile_no;
-                        }
+            const result = await CustomerModel.selectMobileOtpData(condition);
 
-                        let table;
-                        let client = await helpers.get_data_list(
-                            "*",
-                            "clients",
-                            user_data
-                        );
-                        let expert = await helpers.get_data_list(
-                            "*",
-                            "experts",
-                            user_data
-                        );
-
-                        if (client.length) {
-                            table = "clients";
-                        } else if (expert.length) {
-                            table = "experts";
-                        } else {
-                            res.status(500).json({
-                                status: false,
-                                message: "User not found!",
-                            });
-                        }
-
-                        await UserModel.select(user_data, table)
-                            .then(async (result) => {
-                                if (result.length) {
-                                    // jwt token
-                                    let payload = {
-                                        id: result[0].id,
-                                        type:
-                                            table === "clients"
-                                                ? "client"
-                                                : "expert",
-                                    };
-                                    const token = accessToken(payload);
-
-                                    // delete OTP entry from table
-                                    await helpers.delete_common_entry(
-                                        condition,
-                                        "mobile_otp"
-                                    );
-
-                                    res.status(200).json({
-                                        status: true,
-                                        token: token,
-                                        message: "OTP verified.",
-                                    });
-                                } else {
-                                    res.status(500).json({
-                                        status: false,
-                                        message: "User not found!",
-                                    });
-                                }
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                                res.status(500).json({
-                                    status: false,
-                                    message: "Internal server error!",
-                                });
-                            });
-                    } else {
-                        res.status(500).json({
-                            status: false,
-                            message: "Wrong OTP, Try again!",
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
+            if (!result) {
+                return res.status(500).json({
+                    status: false,
+                    message: "Wrong OTP, Try again!",
                 });
+            }
+
+            let user_data = {};
+            if (result.email) {
+                user_data.email = result.email;
+            }
+            if (result.mobile_no) {
+                user_data.mobile_no = result.code + result.mobile_no;
+            }
+
+            let table;
+            const client = await helpers.get_data_list(
+                "*",
+                "clients",
+                user_data
+            );
+            const expert = await helpers.get_data_list(
+                "*",
+                "experts",
+                user_data
+            );
+
+            if (client.length) {
+                table = "clients";
+            } else if (expert.length) {
+                table = "experts";
+            } else {
+                return res.status(500).json({
+                    status: false,
+                    message: "User not found!",
+                });
+            }
+
+            const resultUser = await UserModel.select(user_data, table);
+
+            if (resultUser.length) {
+                // jwt token
+                let payload = {
+                    id: resultUser[0].id,
+                    type: table === "clients" ? "client" : "expert",
+                };
+                const token = accessToken(payload);
+
+                // delete OTP entry from table
+                await helpers.delete_common_entry(condition, "mobile_otp");
+
+                return res.status(200).json({
+                    status: true,
+                    token: token,
+                    message: "OTP verified.",
+                });
+            } else {
+                return res.status(500).json({
+                    status: false,
+                    message: "User not found!",
+                });
+            }
         } catch (error) {
-            console.log(error);
-            res.status(500).json({
+            console.error(error);
+            return res.status(500).json({
                 status: false,
                 message: "Internal server error!",
             });
@@ -886,12 +863,20 @@ var AuthController = {
                         "clients"
                     );
                     let data = {
-                        password: userData[0]?.password ? userData[0]?.password : "",
+                        password: userData[0]?.password
+                            ? userData[0]?.password
+                            : "",
                         email: userData[0]?.email ? userData[0]?.email : "",
-                        mobile_no: userData[0]?.mobile_no ? userData[0]?.mobile_no : "",
+                        mobile_no: userData[0]?.mobile_no
+                            ? userData[0]?.mobile_no
+                            : "",
                         status: userData[0]?.status ? userData[0]?.status : "",
-                        created_at: userData[0]?.created_at ? userData[0]?.created_at : "",
-                        updated_at: userData[0]?.updated_at ? userData[0]?.updated_at : "",
+                        created_at: userData[0]?.created_at
+                            ? userData[0]?.created_at
+                            : "",
+                        updated_at: userData[0]?.updated_at
+                            ? userData[0]?.updated_at
+                            : "",
                     };
                     await UserModel.add(data, "expert");
                     await UserModel.delete({ id: req.user.id }, "clients");
