@@ -1003,7 +1003,9 @@ var AuthController = {
     become_expert_request: async (req, res) => {
         try {
             const currentDatetime = moment();
-            let user_data = {
+
+            const user_data = {
+                expert_request: 1,
                 full_name: req.bodyString("full_name"),
                 email: req.bodyString("email"),
                 mobile_no: req.bodyString("mobile_no"),
@@ -1019,28 +1021,21 @@ var AuthController = {
                 id_img2: static_url + "profile/" + req.all_files?.id_img2,
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
-            console.log(user_data);
 
-            UserModel.updateProfile(
-                { user_id: req.user.id, type: "client" },
-                user_data
-            )
-                .then(async (result) => {
-                    res.status(200).json({
-                        status: true,
-                        message: "Expert request submitted successfully",
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Unable to submit expert request!",
-                    });
-                });
+            await UserModel.updateDetails(
+                { id: req.user.id, type: "client" },
+                user_data,
+                "users"
+            );
+
+            return res.status(200).json({
+                status: true,
+                message: "Expert request submitted successfully",
+            });
         } catch (error) {
-            console.log(error);
-            res.status(500).json({
+            console.error(error);
+
+            return res.status(500).json({
                 status: false,
                 message: "Internal server error!",
             });
@@ -1050,62 +1045,33 @@ var AuthController = {
     accept_expert_request: async (req, res) => {
         try {
             const currentDatetime = moment();
-            let user_id = enc_dec.decrypt(req.bodyString("user_id"));
-            let user_data = {
-                expert_request: req.bodyString("status"),
+
+            const user_id = enc_dec.decrypt(req.bodyString("user_id"));
+            const expert_request = req.bodyString("status");
+
+            const user_data = {
+                expert_request,
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
-            if (req.bodyString("status") == 0) {
+
+            if (expert_request == 0) {
                 user_data.type = "expert";
             }
-            console.log(user_data);
 
-            UserModel.updateProfile(
-                { user_id: user_id, type: "client" },
-                user_data
-            )
-                .then(async (result) => {
-                    if (req.bodyString("status") == 0) {
-                        let userData = await UserModel.select(
-                            { id: user_id },
-                            "clients"
-                        );
-                        let data = {
-                            password: userData[0]?.password
-                                ? userData[0]?.password
-                                : "",
-                            email: userData[0]?.email ? userData[0]?.email : "",
-                            mobile_no: userData[0]?.mobile_no
-                                ? userData[0]?.mobile_no
-                                : "",
-                            status: userData[0]?.status
-                                ? userData[0]?.status
-                                : "",
-                            created_at: userData[0]?.created_at
-                                ? userData[0]?.created_at
-                                : "",
-                            updated_at: userData[0]?.updated_at
-                                ? userData[0]?.updated_at
-                                : "",
-                        };
-                        await UserModel.add(data, "expert");
-                        await UserModel.delete({ id: req.user.id }, "clients");
-                    }
-                    res.status(200).json({
-                        status: true,
-                        message: "Request status changed successfully",
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
+            await UserModel.updateDetails(
+                { id: user_id, type: "client" },
+                user_data,
+                "users"
+            );
+
+            return res.status(200).json({
+                status: true,
+                message: "Request status changed successfully",
+            });
         } catch (error) {
-            console.log(error);
-            res.status(500).json({
+            console.error(error);
+
+            return res.status(500).json({
                 status: false,
                 message: "Internal server error!",
             });
@@ -1219,9 +1185,10 @@ var AuthController = {
                 perpage: 10,
                 start: 0,
             };
+
             if (req.bodyString("perpage") && req.bodyString("page")) {
-                perpage = parseInt(req.bodyString("perpage"));
-                start = parseInt(req.bodyString("page"));
+                let perpage = parseInt(req.bodyString("perpage"));
+                let start = parseInt(req.bodyString("page"));
                 limit.perpage = perpage;
                 limit.start = (start - 1) * perpage;
             }
@@ -1231,67 +1198,56 @@ var AuthController = {
             const totalCount = await UserModel.get_count(
                 condition,
                 {},
-                "user_details"
+                "users"
             );
-            console.log(totalCount);
 
-            await UserModel.select_list(condition, {}, limit, "user_details")
-                .then(async (result) => {
-                    console.log(result);
-                    let response = [];
-                    for (let val of result) {
-                        let temp = {
-                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
-                            user_id: val?.user_id
-                                ? enc_dec.encrypt(val?.user_id)
-                                : "",
-                            type: val?.type ? val?.type : "",
-                            full_name: val?.full_name ? val?.full_name : "",
-                            email: val?.email ? val?.email : "",
-                            gender: val?.gender ? val?.gender : "",
-                            mobile_no: val?.mobile_no ? val?.mobile_no : "",
-                            birth_date: val?.birth_date ? val?.birth_date : "",
-                            address: val?.address ? val?.address : "",
-                            location: val?.location ? val?.location : "",
-                            profile_img: val?.profile_img
-                                ? val?.profile_img
-                                : "",
-                            expert_request:
-                                val?.expert_request == 1
-                                    ? "pending"
-                                    : val?.expert_request == 2
-                                    ? "reject"
-                                    : "approve",
-                            house: val?.house ? val?.house : "",
-                            street: val?.street ? val?.street : "",
-                            zip: val?.zip ? val?.zip : "",
-                            city: val?.city ? val?.city : "",
-                            state: val?.state ? val?.state : "",
-                            id_type: val?.id_type ? val?.id_type : "",
-                            id_img1: val?.id_img1 ? val?.id_img1 : "",
-                            id_img2: val?.id_img2 ? val?.id_img2 : "",
-                            created_at: val?.created_at ? val?.created_at : "",
-                            updated_at: val?.updated_at ? val?.updated_at : "",
-                        };
-                        response.push(temp);
-                    }
-                    res.status(200).json({
-                        status: true,
-                        data: response,
-                        message: "Expert request list fetched successfully!",
-                        total: totalCount,
-                    });
-                })
-                .catch((err) => {
-                    console.log(err);
-                    res.status(500).json({
-                        status: false,
-                        data: {},
-                        error: "Server side error!",
-                    });
-                });
+            const result = await UserModel.select_list(
+                condition,
+                {},
+                limit,
+                "users"
+            );
+
+            let response = result.map((val) => {
+                return {
+                    id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                    user_id: val?.user_id ? enc_dec.encrypt(val?.user_id) : "",
+                    type: val?.type ? val?.type : "",
+                    full_name: val?.full_name ? val?.full_name : "",
+                    email: val?.email ? val?.email : "",
+                    gender: val?.gender ? val?.gender : "",
+                    mobile_no: val?.mobile_no ? val?.mobile_no : "",
+                    birth_date: val?.birth_date ? val?.birth_date : "",
+                    address: val?.address ? val?.address : "",
+                    location: val?.location ? val?.location : "",
+                    profile_img: val?.profile_img ? val?.profile_img : "",
+                    expert_request:
+                        val?.expert_request == 1
+                            ? "pending"
+                            : val?.expert_request == 2
+                            ? "reject"
+                            : "approve",
+                    house: val?.house ? val?.house : "",
+                    street: val?.street ? val?.street : "",
+                    zip: val?.zip ? val?.zip : "",
+                    city: val?.city ? val?.city : "",
+                    state: val?.state ? val?.state : "",
+                    id_type: val?.id_type ? val?.id_type : "",
+                    id_img1: val?.id_img1 ? val?.id_img1 : "",
+                    id_img2: val?.id_img2 ? val?.id_img2 : "",
+                    created_at: val?.created_at ? val?.created_at : "",
+                    updated_at: val?.updated_at ? val?.updated_at : "",
+                };
+            });
+
+            res.status(200).json({
+                status: true,
+                data: response,
+                message: "Expert request list fetched successfully!",
+                total: totalCount,
+            });
         } catch (error) {
-            console.log(error);
+            console.error(error);
             res.status(500).json({
                 status: false,
                 data: {},
