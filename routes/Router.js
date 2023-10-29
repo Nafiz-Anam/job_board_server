@@ -9,12 +9,14 @@ const PaymentRouter = require("./PaymentRoute/PaymentRoute");
 const ExpertsRouter = require("./ExpertsRoute/ExpertsRoute");
 const ClientsRouter = require("./ExpertsRoute/ExpertsRoute");
 const AdminRouter = require("./AdminRoute/AdminRoute");
+const ServiceRouter = require("./ServiceRoute/ServiceRoute");
 
 router.use("/user", UserRouter);
 router.use("/admin", AdminRouter);
 router.use("/experts", ExpertsRouter);
 router.use("/clients", ClientsRouter);
 router.use("/job", JobRouter);
+router.use("/service", ServiceRouter);
 router.use("/category", CategoryRouter);
 router.use("/sub-category", Sub_CategoryRouter);
 router.use("/deposit", DepositRouter);
