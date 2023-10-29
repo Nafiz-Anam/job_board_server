@@ -6,6 +6,42 @@ const STATIC_URL = process.env.STATIC_FILE_URL;
 const moment = require("moment");
 
 var ServiceController = {
+    booking: async (req, res) => {
+        try {
+            let data = {
+                service_id: enc_dec.decrypt(req.bodyString("service_id")),
+                client_id: req.user.id,
+                booking_date: req.bodyString("booking_date"),
+                booking_time: req.bodyString("booking_time"),
+                working_hours: req.bodyString("working_hours"),
+                address: req.bodyString("address"),
+                location: req.bodyString("location"),
+                payment_method: req.bodyString("payment_method"),
+                payment_id: req.bodyString("payment_id"),
+            };
+            await ServiceModel.booking(data)
+                .then((result) => {
+                    res.status(200).json({
+                        status: true,
+                        message: "Service booked successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        message: "Unable to book service. Try again!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Server side error! Try again.",
+            });
+        }
+    },
+
     create: async (req, res) => {
         console.log("all_files =>", req.all_files);
         try {
@@ -118,6 +154,111 @@ var ServiceController = {
     //     }
     // },
 
+    booking_list: async (req, res) => {
+        try {
+            let limit = {
+                perpage: 10,
+                start: 0,
+            };
+            if (req.bodyString("perpage") && req.bodyString("page")) {
+                perpage = parseInt(req.bodyString("perpage"));
+                start = parseInt(req.bodyString("page"));
+                limit.perpage = perpage;
+                limit.start = (start - 1) * perpage;
+            }
+
+            let condition = {};
+            // if (req.user?.type === "expert") {
+            //     condition.posted_by = req.user?.id;
+            // }
+            // if (req.bodyString("expert_id")) {
+            //     condition.posted_by = enc_dec.decrypt(
+            //         req.bodyString("expert_id")
+            //     );
+            // }
+            // if (req.bodyString("req_status")) {
+            //     condition.req_status = req.bodyString("req_status");
+            // }
+            // if (req.bodyString("status")) {
+            //     condition.status = req.bodyString("status");
+            // }
+
+            const totalCount = await ServiceModel.booking_get_count(
+                condition,
+                {}
+            );
+            console.log(totalCount);
+
+            await ServiceModel.booking_select_list(condition, {}, limit)
+                .then(async (result) => {
+                    console.log(result);
+                    let response = [];
+                    for (let val of result) {
+                        let temp = {
+                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            service_id: val?.service_id
+                                ? enc_dec.encrypt(val?.service_id)
+                                : "",
+                            client_id: val?.client_id
+                                ? enc_dec.encrypt(val?.client_id)
+                                : "",
+                            req_status:
+                                val?.req_status == 1
+                                    ? "pending"
+                                    : val?.req_status == 2
+                                    ? "rejected"
+                                    : "accepted",
+                            work_status:
+                                val?.work_status == 2
+                                    ? "not_started"
+                                    : val?.work_status == 1
+                                    ? "ongoing"
+                                    : "completed",
+                            booking_date: val?.booking_date
+                                ? val?.booking_date
+                                : "",
+                            booking_time: val?.booking_time
+                                ? val?.booking_time
+                                : "",
+                            working_hours: val?.working_hours
+                                ? val?.working_hours
+                                : "",
+                            address: val?.address ? val?.address : "",
+                            location: val?.location ? val?.location : "",
+                            payment_method: val?.payment_method
+                                ? val?.payment_method
+                                : "",
+                            payment_id: val?.payment_id ? val?.payment_id : "",
+                            created_at: val?.created_at ? val?.created_at : "",
+                            updated_at: val?.updated_at ? val?.updated_at : "",
+                        };
+                        response.push(temp);
+                    }
+                    res.status(200).json({
+                        status: true,
+                        data: response,
+                        message: "Services fetched successfully!",
+                        total: totalCount,
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
+        }
+    },
+    
     list: async (req, res) => {
         try {
             let limit = {

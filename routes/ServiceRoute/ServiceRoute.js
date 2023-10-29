@@ -10,6 +10,8 @@ router.post(
     serviceUploader,
     ServiceController.create
 );
+router.post("/book", checkExpertToken, ServiceController.booking);
+router.post("/bookings", checkExpertToken, ServiceController.booking_list);
 // router.post(
 //     "/update",
 //     checkPermission,
@@ -18,7 +20,11 @@ router.post(
 // );
 router.post("/list", checkPermission, ServiceController.list);
 router.post("/details", checkPermission, ServiceController.details);
-router.post("/request/update", checkPermission, ServiceController.request_update);
+router.post(
+    "/request/update",
+    checkPermission,
+    ServiceController.request_update
+);
 
 router.post("/delete", checkPermission, ServiceController.delete);
 
