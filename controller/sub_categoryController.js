@@ -94,6 +94,11 @@ var Sub_CategoryController = {
                     console.log(result);
                     let response = [];
                     for (let val of result) {
+                        let category_name = await helpers.get_data_list(
+                            "name",
+                            "categories",
+                            { id: val?.category_id }
+                        );
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             name: val?.name ? val?.name : "",
@@ -105,6 +110,9 @@ var Sub_CategoryController = {
                                 : "",
                             category_id: val?.category_id
                                 ? enc_dec.encrypt(val?.category_id)
+                                : "",
+                            category_name: category_name.length
+                                ? category_name[0].name
                                 : "",
                             status: val?.status == 0 ? "active" : "inactive",
                             created_at: val?.created_at ? val?.created_at : "",
