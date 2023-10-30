@@ -191,16 +191,40 @@ var JobController = {
             await JobModel.select_list(condition, {}, limit)
                 .then(async (result) => {
                     console.log(result);
+
                     let response = [];
                     for (let val of result) {
+                        let category_name = await helpers.get_data_list(
+                            "name",
+                            "categories",
+                            { id: val?.category_id }
+                        );
+                        let username = await helpers.get_data_list(
+                            "full_name",
+                            "users",
+                            { id: val?.posted_by }
+                        );
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            req_status:
+                                val?.req_status == 1
+                                    ? "pending"
+                                    : val?.req_status == 2
+                                    ? "rejected"
+                                    : "accepted",
+                            status: val?.status == 0 ? "active" : "inactive",
                             title: val?.title ? val?.title : "",
                             description: val?.description
                                 ? val?.description
                                 : "",
                             category_id: val?.category_id
                                 ? enc_dec.encrypt(val?.category_id)
+                                : "",
+                            username: username.length
+                                ? username[0].full_name
+                                : "",
+                            category_name: category_name.length
+                                ? category_name[0].name
                                 : "",
                             sub_category_id: val?.sub_category_id
                                 ? enc_dec.encrypt(val?.sub_category_id)
