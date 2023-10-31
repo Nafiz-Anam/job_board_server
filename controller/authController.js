@@ -57,9 +57,14 @@ var AuthController = {
             };
             const token = accessToken(payload);
 
+            // Save user login info
+            const loginInfo = await helpers.getUserLoginInfo(req);
+            await helpers.saveUserLoginInfo(check_user_exist[0].id, loginInfo);
+
             return res.status(200).json({
                 status: true,
                 token,
+                type: check_user_exist[0].type,
                 message: "User login successfully!",
             });
         } catch (error) {
@@ -950,7 +955,7 @@ var AuthController = {
 
             let condition = {};
 
-            if(req.bodyString("type")){
+            if (req.bodyString("type")) {
                 condition.type = req.bodyString("type");
             }
 

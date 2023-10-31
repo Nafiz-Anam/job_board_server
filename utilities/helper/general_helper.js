@@ -3,12 +3,14 @@
 const env = process.env.ENVIRONMENT;
 const config = require("../../config/config.json")[env];
 const pool = require("../../config/database");
+const useragent = require("express-useragent");
+const requestIp = require("request-ip");
 // const enc_dec = require("../decryptor/decryptor")
 // const encrypt_decrypt = require('../decryptor/encrypt_decrypt');
 // const server_addr = process.env.SERVER_LOAD
 // const port = process.env.SERVER_PORT
 // const fs = require('fs')
-// const axios = require('axios')
+const axios = require("axios");
 const randomString = (length, capslock = 0) => {
     let chars =
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -80,6 +82,47 @@ var helpers = {
         console.log(qb.last_query());
         qb.release();
         return response;
+    },
+
+    getUserLoginInfo: async (req) => {
+        const userAgent = useragent.parse(req.headers["user-agent"]);
+        const ip = requestIp.getClientIp(req);
+        try {
+            const response = await axios.get(
+                `https://api.ipgeolocation.io/ipgeo?apiKey=${process.env.GEO_LOCATION_API}&ip=${ip}`
+            );
+            const { country_name: country } = response.data;
+            return {
+                deviceName: userAgent.device,
+                browser: userAgent.browser,
+                ip,
+                country,
+            };
+        } catch (error) {
+            console.error("Error fetching IP geolocation:", error);
+        }
+    },
+
+    saveUserLoginInfo: async (userId, userInfo) => {
+        console.log("userInfo", userInfo);
+        let qb = await pool.get_connection();
+        try {
+            let data = {
+                user_id: userId,
+                device_name: userInfo?.deviceName,
+                ip_address: userInfo?.ip,
+                country: userInfo?.country,
+                browser: userInfo?.browser,
+            };
+            let response = await qb
+                .returning("id")
+                .insert(config.table_prefix + "login_info", data);
+            qb.release();
+            console.log("login data recorded");
+            return response;
+        } catch (error) {
+            console.error("Error saving user info:", error);
+        }
     },
 
     checkExistence: async (table, field, value) => {
