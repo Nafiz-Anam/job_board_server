@@ -801,9 +801,6 @@ var AuthController = {
 
                     return {
                         id: val?.id ? enc_dec.encrypt(val?.id) : "",
-                        user_id: val?.user_id
-                            ? enc_dec.encrypt(val?.user_id)
-                            : "",
                         category_id: val?.category_id
                             ? enc_dec.encrypt(val?.category_id)
                             : "",
@@ -860,7 +857,85 @@ var AuthController = {
             });
         }
     },
-    
+
+    expert_request_details: async (req, res) => {
+        try {
+            let id = enc_dec.decrypt(req.bodyString("req_id"));
+            let condition = { id: id };
+
+            const result = await UserModel.selectSpecific("*", condition);
+
+            let response = await Promise.all(
+                result.map(async (val) => {
+                    let category_name = await helpers.get_data_list(
+                        "name",
+                        "categories",
+                        { id: val?.category_id }
+                    );
+                    let sub_category_name = await helpers.get_data_list(
+                        "name",
+                        "sub_categories",
+                        { id: val?.sub_category_id }
+                    );
+
+                    return {
+                        id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                        category_id: val?.category_id
+                            ? enc_dec.encrypt(val?.category_id)
+                            : "",
+                        category_name: category_name.length
+                            ? category_name[0].name
+                            : "",
+                        sub_category_id: val?.sub_category_id
+                            ? enc_dec.encrypt(val?.sub_category_id)
+                            : "",
+                        sub_category_name: sub_category_name.length
+                            ? sub_category_name[0].name
+                            : "",
+                        type: val?.type ? val?.type : "",
+                        full_name: val?.full_name ? val?.full_name : "",
+                        email: val?.email ? val?.email : "",
+                        gender: val?.gender ? val?.gender : "",
+                        mobile_no: val?.mobile_no ? val?.mobile_no : "",
+                        birth_date: val?.birth_date ? val?.birth_date : "",
+                        address: val?.address ? val?.address : "",
+                        location: val?.location ? val?.location : "",
+                        profile_img: val?.profile_img ? val?.profile_img : "",
+                        expert_request:
+                            val?.expert_request == 1
+                                ? "pending"
+                                : val?.expert_request == 2
+                                ? "reject"
+                                : "approve",
+                        house: val?.house ? val?.house : "",
+                        street: val?.street ? val?.street : "",
+                        zip: val?.zip ? val?.zip : "",
+                        city: val?.city ? val?.city : "",
+                        state: val?.state ? val?.state : "",
+                        id_type: val?.id_type ? val?.id_type : "",
+                        id_img1: val?.id_img1 ? val?.id_img1 : "",
+                        id_img2: val?.id_img2 ? val?.id_img2 : "",
+                        created_at: val?.created_at ? val?.created_at : "",
+                        updated_at: val?.updated_at ? val?.updated_at : "",
+                    };
+                })
+            );
+
+            res.status(200).json({
+                status: true,
+                data: response[0],
+                message: "Expert request details fetched successfully!",
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
+        }
+    },
+
     update_expert_request: async (req, res) => {
         try {
             const currentDatetime = moment();

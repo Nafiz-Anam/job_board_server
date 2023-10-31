@@ -63,6 +63,11 @@ router.post(
     authController.expert_request_list
 );
 router.post(
+    "/become-expert/details",
+    checkAdminToken,
+    authController.expert_request_details
+);
+router.post(
     "/become-expert/update",
     checkAdminToken,
     authController.update_expert_request
