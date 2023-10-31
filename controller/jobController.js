@@ -199,8 +199,8 @@ var JobController = {
                             "categories",
                             { id: val?.category_id }
                         );
-                        let username = await helpers.get_data_list(
-                            "full_name",
+                        let userData = await helpers.get_data_list(
+                            "full_name,profile_img",
                             "users",
                             { id: val?.posted_by }
                         );
@@ -220,8 +220,11 @@ var JobController = {
                             category_id: val?.category_id
                                 ? enc_dec.encrypt(val?.category_id)
                                 : "",
-                            username: username.length
-                                ? username[0].full_name
+                            username: userData.length
+                                ? userData[0].full_name
+                                : "",
+                            user_img: userData.length
+                                ? userData[0].profile_img
                                 : "",
                             category_name: category_name.length
                                 ? category_name[0].name

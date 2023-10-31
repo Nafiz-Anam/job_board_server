@@ -93,10 +93,10 @@ var AdminController = {
             };
             await AdminModel.updateDetails({ id: req.user.id }, admin_data)
                 .then((result) => {
-                  res.status(200).json({
-                      status: true,
-                      message: "Password updated successfully!",
-                  });
+                    res.status(200).json({
+                        status: true,
+                        message: "Password updated successfully!",
+                    });
                 })
                 .catch((error) => {
                     console.log(error);
