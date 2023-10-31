@@ -245,6 +245,35 @@ var dbModel = {
         qb.release();
         return response[0]?.total;
     },
+
+    get_proposal_count: async (condition) => {
+        let qb = await pool.get_connection();
+        let final_cond = " where ";
+
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
+
+        if (final_cond == " where ") {
+            final_cond = "";
+        }
+
+        let query =
+            "select count(*) as total from " + `mx_applied_jobs` + final_cond;
+
+        console.log("query => ", query);
+        let response = await qb.query(query);
+        qb.release();
+        return response[0]?.total;
+    },
+
     applied_get_count: async (condition, date_condition) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";

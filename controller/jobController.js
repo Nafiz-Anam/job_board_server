@@ -194,6 +194,9 @@ var JobController = {
 
                     let response = [];
                     for (let val of result) {
+                        let proposalCount = await JobModel.get_proposal_count({
+                            job_id: val?.id,
+                        });
                         let category_name = await helpers.get_data_list(
                             "name",
                             "categories",
@@ -254,6 +257,7 @@ var JobController = {
                             attach_video: val?.attach_video
                                 ? val?.attach_video
                                 : "",
+                            proposalCount: proposalCount || 0,
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };
