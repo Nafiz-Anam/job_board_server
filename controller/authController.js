@@ -934,6 +934,109 @@ var AuthController = {
             });
         }
     },
+
+    list: async (req, res) => {
+        try {
+            let limit = {
+                perpage: 10,
+                start: 0,
+            };
+            if (req.bodyString("perpage") && req.bodyString("page")) {
+                perpage = parseInt(req.bodyString("perpage"));
+                start = parseInt(req.bodyString("page"));
+                limit.perpage = perpage;
+                limit.start = (start - 1) * perpage;
+            }
+
+            let condition = {};
+
+            if(req.bodyString("type")){
+                condition.type = req.bodyString("type");
+            }
+
+            const totalCount = await UserModel.get_count(
+                condition,
+                {},
+                "users"
+            );
+            console.log(totalCount);
+
+            await UserModel.select_list(condition, {}, limit, "users")
+                .then(async (result) => {
+                    // console.log(result);
+
+                    let response = [];
+                    for (let val of result) {
+                        // let category_name = await helpers.get_data_list(
+                        //     "name",
+                        //     "categories",
+                        //     { id: val?.category_id }
+                        // );
+                        // let username = await helpers.get_data_list(
+                        //     "full_name",
+                        //     "users",
+                        //     { id: val?.posted_by }
+                        // );
+                        let temp = {
+                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            expert_request:
+                                val?.expert_request == 1
+                                    ? "pending"
+                                    : val?.expert_request == 2
+                                    ? "rejected"
+                                    : "accepted",
+                            // status: val?.status == 0 ? "active" : "inactive",
+
+                            type: val?.type ? val?.type : "",
+                            user_no: val?.user_no ? val?.user_no : "",
+                            mobile_no: val?.mobile_no ? val?.mobile_no : "",
+                            email: val?.email ? val?.email : "",
+
+                            profile_img: val?.profile_img
+                                ? val?.profile_img
+                                : "",
+                            full_name: val?.full_name ? val?.full_name : "",
+                            gender: val?.gender ? val?.gender : "",
+                            birth_date: val?.birth_date ? val?.birth_date : "",
+                            id_type: val?.id_type ? val?.id_type : "",
+                            id_img1: val?.id_img1 ? val?.id_img1 : "",
+                            id_img2: val?.id_img2 ? val?.id_img2 : "",
+                            house: val?.house ? val?.house : "",
+                            street: val?.street ? val?.street : "",
+                            city: val?.city ? val?.city : "",
+                            zip: val?.zip ? val?.zip : "",
+                            state: val?.state ? val?.state : "",
+                            address: val?.address ? val?.address : "",
+                            location: val?.location ? val?.location : "",
+                            created_at: val?.created_at ? val?.created_at : "",
+                            updated_at: val?.updated_at ? val?.updated_at : "",
+                        };
+                        response.push(temp);
+                    }
+                    res.status(200).json({
+                        status: true,
+                        data: response,
+                        message: "Users fetched successfully!",
+                        total: totalCount,
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
+        }
+    },
 };
 
 module.exports = AuthController;
