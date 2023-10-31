@@ -975,9 +975,17 @@ var AuthController = {
     profile_details: async (req, res) => {
         try {
             const id = req.user?.id;
-            const type = req.user?.type;
+            // const type = req.user?.type;
 
-            const result = await UserModel.select({ id, type }, "users");
+            let condition = {};
+
+            if (req.bodyString("user_id")) {
+                condition.id = enc_dec.decrypt(req.bodyString("user_id"));
+            } else {
+                condition.id = id;
+            }
+
+            const result = await UserModel.select(condition, "users");
 
             let profile_data = {};
 

@@ -186,7 +186,6 @@ var JobController = {
             let condition = {};
 
             const totalCount = await JobModel.get_count(condition, {});
-            console.log(totalCount);
 
             await JobModel.select_list(condition, {}, limit)
                 .then(async (result) => {
