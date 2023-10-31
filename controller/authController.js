@@ -972,16 +972,6 @@ var AuthController = {
 
                     let response = [];
                     for (let val of result) {
-                        // let category_name = await helpers.get_data_list(
-                        //     "name",
-                        //     "categories",
-                        //     { id: val?.category_id }
-                        // );
-                        // let username = await helpers.get_data_list(
-                        //     "full_name",
-                        //     "users",
-                        //     { id: val?.posted_by }
-                        // );
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             expert_request:
@@ -1040,6 +1030,31 @@ var AuthController = {
                 data: {},
                 error: "Server side error!",
             });
+        }
+    },
+
+    block_unblock: async (req, res) => {
+        let id = enc_dec.decrypt(req.bodyString("user_id"));
+        let status = req.bodyString("status");
+        let msgStatus = "";
+        if (status == 1) {
+            msgStatus = "blocked";
+        } else {
+            msgStatus = "unblocked";
+        }
+        try {
+            let user_data = {
+                status: status,
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await UserModel.updateDetails({ id: id }, user_data, "users");
+            res.status(200).json({
+                status: true,
+                message: `User ${msgStatus} successfully!`,
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).send(error);
         }
     },
 };

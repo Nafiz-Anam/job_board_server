@@ -6,5 +6,6 @@ router.post("/create", CategoryUploader, CategoryController.create);
 router.post("/update", CategoryUploader, CategoryController.update);
 router.post("/list", CategoryController.list);
 router.post("/details", CategoryController.details);
+router.post("/delete", CategoryController.delete);
 
 module.exports = router;

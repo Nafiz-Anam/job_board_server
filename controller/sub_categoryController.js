@@ -193,6 +193,35 @@ var Sub_CategoryController = {
             });
         }
     },
+
+    delete: async (req, res) => {
+        try {
+            let id = enc_dec.decrypt(req.bodyString("sub_category_id"));
+            await Sub_CategoryModel.delete({ id: id })
+                .then(async (result) => {
+                    res.status(200).json({
+                        status: true,
+                        data: response,
+                        message: "Sub-Category deleted successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
+        }
+    },
 };
 
 module.exports = Sub_CategoryController;
