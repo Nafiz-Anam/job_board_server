@@ -59,7 +59,7 @@ var AuthController = {
 
             // Save user login info
             const loginInfo = await helpers.getUserLoginInfo(req);
-            await helpers.saveUserLoginInfo(check_user_exist[0].id, loginInfo);
+            await helpers.saveUserLoginInfo(check_user_exist[0]?.id, loginInfo);
 
             return res.status(200).json({
                 status: true,
@@ -827,7 +827,8 @@ var AuthController = {
                                 ? "pending"
                                 : val?.expert_request == 2
                                 ? "reject"
-                                : "approve",
+                                : "accepted",
+                        status: val?.status == 0 ? "active" : "blocked",
                         house: val?.house ? val?.house : "",
                         street: val?.street ? val?.street : "",
                         zip: val?.zip ? val?.zip : "",
@@ -975,8 +976,6 @@ var AuthController = {
     profile_details: async (req, res) => {
         try {
             const id = req.user?.id;
-            // const type = req.user?.type;
-
             let condition = {};
 
             if (req.bodyString("user_id")) {
@@ -991,19 +990,59 @@ var AuthController = {
 
             if (result.length > 0) {
                 const val = result[0];
-
+                let category_name = await helpers.get_data_list(
+                    "name",
+                    "categories",
+                    { id: val?.category_id }
+                );
+                let sub_category_name = await helpers.get_data_list(
+                    "name",
+                    "sub_categories",
+                    { id: val?.sub_category_id }
+                );
+                let age = await helpers.calculateAge(
+                    user_details[0]?.birth_date
+                );
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
                     profile_img: val?.profile_img ? val?.profile_img : "",
                     full_name: val?.full_name ? val?.full_name : "",
                     email: val?.email ? val?.email : "",
                     birth_date: val?.birth_date ? val?.birth_date : "",
+                    age: age || "",
+                    expert_request:
+                        val?.expert_request == 1
+                            ? "pending"
+                            : val?.expert_request == 2
+                            ? "rejected"
+                            : "accepted",
+                    status: val?.status == 0 ? "active" : "blocked",
                     gender: val?.gender ? val?.gender : "",
                     mobile_no: val?.mobile_no ? val?.mobile_no : "",
                     address: val?.address ? val?.address : "",
                     location: val?.location ? val?.location : "",
                     created_at: val?.created_at ? val?.created_at : "",
                     updated_at: val?.updated_at ? val?.updated_at : "",
+                    id_type: val?.id_type ? val?.id_type : "",
+                    id_img1: val?.id_img1 ? val?.id_img1 : "",
+                    id_img2: val?.id_img2 ? val?.id_img2 : "",
+                    house: val?.house ? val?.house : "",
+                    street: val?.street ? val?.street : "",
+                    city: val?.city ? val?.city : "",
+                    zip: val?.zip ? val?.zip : "",
+                    state: val?.state ? val?.state : "",
+                    category_id: val?.category_id
+                        ? enc_dec.encrypt(val?.category_id)
+                        : "",
+                    category_name: category_name.length
+                        ? category_name[0].name
+                        : "",
+                    sub_category_id: val?.sub_category_id
+                        ? enc_dec.encrypt(val?.sub_category_id)
+                        : "",
+                    sub_category_name: sub_category_name.length
+                        ? sub_category_name[0].name
+                        : "",
                 };
             }
 
@@ -1072,6 +1111,31 @@ var AuthController = {
             if (req.bodyString("type")) {
                 condition.type = req.bodyString("type");
             }
+            if (req.bodyString("status")) {
+                condition.status = req.bodyString("status");
+            }
+            if (req.bodyString("expert_request")) {
+                condition.expert_request = req.bodyString("expert_request");
+            }
+            if (req.bodyString("city")) {
+                condition.city = req.bodyString("city");
+            }
+            if (req.bodyString("state")) {
+                condition.state = req.bodyString("state");
+            }
+            if (req.bodyString("gender")) {
+                condition.gender = req.bodyString("gender");
+            }
+            if (req.bodyString("category_id")) {
+                condition.category_id = enc_dec.decrypt(
+                    req.bodyString("category_id")
+                );
+            }
+            if (req.bodyString("sub_category_id")) {
+                condition.sub_category_id = enc_dec.decrypt(
+                    req.bodyString("sub_category_id")
+                );
+            }
 
             const totalCount = await UserModel.get_count(
                 condition,
@@ -1086,6 +1150,17 @@ var AuthController = {
 
                     let response = [];
                     for (let val of result) {
+                        let category_name = await helpers.get_data_list(
+                            "name",
+                            "categories",
+                            { id: val?.category_id }
+                        );
+                        let sub_category_name = await helpers.get_data_list(
+                            "name",
+                            "sub_categories",
+                            { id: val?.sub_category_id }
+                        );
+                        let age = await helpers.calculateAge(val?.birth_date);
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             expert_request:
@@ -1094,13 +1169,12 @@ var AuthController = {
                                     : val?.expert_request == 2
                                     ? "rejected"
                                     : "accepted",
-                            // status: val?.status == 0 ? "active" : "inactive",
-
+                            status: val?.status == 0 ? "active" : "blocked",
                             type: val?.type ? val?.type : "",
                             user_no: val?.user_no ? val?.user_no : "",
                             mobile_no: val?.mobile_no ? val?.mobile_no : "",
                             email: val?.email ? val?.email : "",
-
+                            age: age || "",
                             profile_img: val?.profile_img
                                 ? val?.profile_img
                                 : "",
@@ -1117,6 +1191,26 @@ var AuthController = {
                             state: val?.state ? val?.state : "",
                             address: val?.address ? val?.address : "",
                             location: val?.location ? val?.location : "",
+                            id_type: val?.id_type ? val?.id_type : "",
+                            id_img1: val?.id_img1 ? val?.id_img1 : "",
+                            id_img2: val?.id_img2 ? val?.id_img2 : "",
+                            house: val?.house ? val?.house : "",
+                            street: val?.street ? val?.street : "",
+                            city: val?.city ? val?.city : "",
+                            zip: val?.zip ? val?.zip : "",
+                            state: val?.state ? val?.state : "",
+                            category_id: val?.category_id
+                                ? enc_dec.encrypt(val?.category_id)
+                                : "",
+                            category_name: category_name.length
+                                ? category_name[0].name
+                                : "",
+                            sub_category_id: val?.sub_category_id
+                                ? enc_dec.encrypt(val?.sub_category_id)
+                                : "",
+                            sub_category_name: sub_category_name.length
+                                ? sub_category_name[0].name
+                                : "",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };
@@ -1169,6 +1263,56 @@ var AuthController = {
         } catch (error) {
             console.log(error);
             res.status(500).send(error);
+        }
+    },
+
+    login_list: async (req, res) => {
+        try {
+            let limit = {
+                perpage: 10,
+                start: 0,
+            };
+            if (req.bodyString("perpage") && req.bodyString("page")) {
+                perpage = parseInt(req.bodyString("perpage"));
+                start = parseInt(req.bodyString("page"));
+                limit.perpage = perpage;
+                limit.start = (start - 1) * perpage;
+            }
+            let id = enc_dec.decrypt(req.bodyString("id"));
+
+            const totalCount = await helpers.common_get_count(
+                { user_id: id },
+                "login_history"
+            );
+            await UserModel.select_list(
+                { user_id: id },
+                {},
+                limit,
+                "login_history"
+            )
+                .then(async (result) => {
+                    res.status(200).json({
+                        status: true,
+                        data: result,
+                        message: "Login history fetched successfully!",
+                        total: totalCount,
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
         }
     },
 };

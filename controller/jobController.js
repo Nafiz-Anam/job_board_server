@@ -75,11 +75,16 @@ var JobController = {
                 filesStringified = JSON.stringify(filesWithStaticUrl);
             }
             console.log("filesStringified", filesStringified);
+            let job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            let client_id = await helpers.get_data_list("posted_by", "jobs", {
+                id: job_id,
+            });
 
             let data = {
                 cover_letter: req.bodyString("cover_letter"),
                 expert_id: req.user?.id,
-                job_id: enc_dec.decrypt(req.bodyString("job_id")),
+                client_id: client_id.length ? client_id[0].posted_by : "",
+                job_id: job_id,
                 is_hourly: req.bodyString("is_hourly"),
                 from_rate: req.bodyString("from_rate"),
                 to_rate: req.bodyString("to_rate"),
@@ -185,6 +190,34 @@ var JobController = {
 
             let condition = {};
 
+            if (req.bodyString("status")) {
+                condition.status = req.bodyString("status");
+            }
+            if (req.bodyString("req_status")) {
+                condition.req_status = req.bodyString("req_status");
+            }
+            if (req.bodyString("experience")) {
+                condition.experience = req.bodyString("experience");
+            }
+            if (req.bodyString("payment_type")) {
+                condition.payment_type = req.bodyString("payment_type");
+            }
+            if (req.bodyString("posted_by")) {
+                condition.posted_by = enc_dec.decrypt(
+                    req.bodyString("posted_by")
+                );
+            }
+            if (req.bodyString("category_id")) {
+                condition.category_id = enc_dec.decrypt(
+                    req.bodyString("category_id")
+                );
+            }
+            if (req.bodyString("sub_category_id")) {
+                condition.sub_category_id = enc_dec.decrypt(
+                    req.bodyString("sub_category_id")
+                );
+            }
+
             const totalCount = await JobModel.get_count(condition, {});
 
             await JobModel.select_list(condition, {}, limit)
@@ -221,6 +254,9 @@ var JobController = {
                                 : "",
                             category_id: val?.category_id
                                 ? enc_dec.encrypt(val?.category_id)
+                                : "",
+                            posted_by: val?.posted_by
+                                ? enc_dec.encrypt(val?.posted_by)
                                 : "",
                             username: userData.length
                                 ? userData[0].full_name
@@ -302,6 +338,26 @@ var JobController = {
 
             let condition = {};
 
+            if (req.bodyString("req_status")) {
+                condition.req_status = req.bodyString("req_status");
+            }
+            if (req.bodyString("is_hourly")) {
+                condition.is_hourly = req.bodyString("is_hourly");
+            }
+            if (req.bodyString("client_id")) {
+                condition.client_id = enc_dec.decrypt(
+                    req.bodyString("client_id")
+                );
+            }
+            if (req.bodyString("expert_id")) {
+                condition.expert_id = enc_dec.decrypt(
+                    req.bodyString("expert_id")
+                );
+            }
+            if (req.bodyString("job_id")) {
+                condition.job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            }
+
             const totalCount = await JobModel.applied_get_count(condition, {});
             console.log(totalCount);
 
@@ -314,6 +370,9 @@ var JobController = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             expert_id: val?.expert_id
                                 ? enc_dec.encrypt(val?.expert_id)
+                                : "",
+                            client_id: val?.client_id
+                                ? enc_dec.encrypt(val?.client_id)
                                 : "",
                             job_id: val?.job_id
                                 ? enc_dec.encrypt(val?.job_id)

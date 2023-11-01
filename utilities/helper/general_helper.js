@@ -83,6 +83,19 @@ var helpers = {
         qb.release();
         return response;
     },
+    calculateAge: async (dateOfBirth) => {
+        const dob = new Date(dateOfBirth);
+        const now = new Date();
+        const yearDiff = now.getFullYear() - dob.getFullYear();
+        const monthDiff = now.getMonth() - dob.getMonth();
+        const dayDiff = now.getDate() - dob.getDate();
+
+        if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            return yearDiff - 1;
+        } else {
+            return yearDiff;
+        }
+    },
 
     getUserLoginInfo: async (req) => {
         const userAgent = useragent.parse(req.headers["user-agent"]);
@@ -116,7 +129,7 @@ var helpers = {
             };
             let response = await qb
                 .returning("id")
-                .insert(config.table_prefix + "login_info", data);
+                .insert(config.table_prefix + "login_history", data);
             qb.release();
             console.log("login data recorded");
             return response;

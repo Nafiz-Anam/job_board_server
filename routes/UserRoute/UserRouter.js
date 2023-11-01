@@ -72,5 +72,6 @@ router.post(
     checkAdminToken,
     authController.update_expert_request
 );
+router.post("/login/history", authController.login_list);
 
 module.exports = router;

@@ -8,9 +8,18 @@ const moment = require("moment");
 var ServiceController = {
     booking: async (req, res) => {
         try {
+            let ser_id = enc_dec.decrypt(req.bodyString("service_id"));
+            let expert_id = await helpers.get_data_list(
+                "posted_by",
+                "services",
+                {
+                    id: ser_id,
+                }
+            );
             let data = {
-                service_id: enc_dec.decrypt(req.bodyString("service_id")),
+                service_id: ser_id,
                 client_id: req.user.id,
+                expert_id: expert_id.length ? expert_id[0].posted_by : "",
                 booking_date: req.bodyString("booking_date"),
                 booking_time: req.bodyString("booking_time"),
                 working_hours: req.bodyString("working_hours"),
@@ -168,26 +177,36 @@ var ServiceController = {
             }
 
             let condition = {};
-            // if (req.user?.type === "expert") {
-            //     condition.posted_by = req.user?.id;
-            // }
-            // if (req.bodyString("expert_id")) {
-            //     condition.posted_by = enc_dec.decrypt(
-            //         req.bodyString("expert_id")
-            //     );
-            // }
-            // if (req.bodyString("req_status")) {
-            //     condition.req_status = req.bodyString("req_status");
-            // }
-            // if (req.bodyString("status")) {
-            //     condition.status = req.bodyString("status");
-            // }
+            if (req.bodyString("client_id")) {
+                condition.client_id = enc_dec.decrypt(
+                    req.bodyString("client_id")
+                );
+            }
+            if (req.bodyString("expert_id")) {
+                condition.expert_id = enc_dec.decrypt(
+                    req.bodyString("expert_id")
+                );
+            }
+            if (req.bodyString("service_id")) {
+                condition.service_id = enc_dec.decrypt(
+                    req.bodyString("service_id")
+                );
+            }
+            if (req.bodyString("req_status")) {
+                condition.req_status = req.bodyString("req_status");
+            }
+            if (req.bodyString("status")) {
+                condition.status = req.bodyString("status");
+            }
+            if (req.bodyString("payment_method")) {
+                condition.payment_method = req.bodyString("payment_method");
+            }
 
             const totalCount = await ServiceModel.booking_get_count(
                 condition,
                 {}
             );
-            console.log(totalCount);
+            // console.log(totalCount);
 
             await ServiceModel.booking_select_list(condition, {}, limit)
                 .then(async (result) => {
@@ -201,6 +220,9 @@ var ServiceController = {
                                 : "",
                             client_id: val?.client_id
                                 ? enc_dec.encrypt(val?.client_id)
+                                : "",
+                            expert_id: val?.expert_id
+                                ? enc_dec.encrypt(val?.expert_id)
                                 : "",
                             req_status:
                                 val?.req_status == 1
@@ -258,7 +280,7 @@ var ServiceController = {
             });
         }
     },
-    
+
     list: async (req, res) => {
         try {
             let limit = {
