@@ -55,6 +55,12 @@ var ServiceController = {
         console.log("all_files =>", req.all_files);
         try {
             let files = req.all_files?.service_img;
+            if(!files){
+                return res.status(500).json({
+                    status: false,
+                    message: "Unable to add service without files. Try again!",
+                });
+            }
             const filesWithStaticUrl = files.map(
                 (file) => STATIC_URL + "services/" + file
             );
