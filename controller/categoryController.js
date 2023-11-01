@@ -6,12 +6,12 @@ const STATIC_URL = process.env.STATIC_FILE_URL;
 
 var CategoryController = {
     create: async (req, res) => {
-        console.log("all_files =>", req.all_files);
         try {
             let data = {
                 name: req.bodyString("name"),
                 status: req.bodyString("status"),
-                service_image: req.all_files.service_image,
+                service_image:
+                    STATIC_URL + "category/" + req.all_files.service_image,
             };
             await CategoryModel.add(data)
                 .then((result) => {
@@ -42,7 +42,8 @@ var CategoryController = {
             let data = {
                 name: req.bodyString("name"),
                 status: req.bodyString("status"),
-                service_image: req?.all_files?.service_image,
+                service_image:
+                    STATIC_URL + "category/" + req?.all_files?.service_image,
             };
             await CategoryModel.updateDetails({ id: id }, data)
                 .then((result) => {
@@ -173,11 +174,15 @@ var CategoryController = {
     delete: async (req, res) => {
         try {
             let id = enc_dec.decrypt(req.bodyString("category_id"));
-            await CategoryModel.delete({ id: id })
+            let data = {
+                deleted: req.bodyString("deleted"),
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+
+            await CategoryModel.updateDetails({ id: id }, data)
                 .then(async (result) => {
                     res.status(200).json({
                         status: true,
-                        data: response,
                         message: "Category deleted successfully!",
                     });
                 })
@@ -185,7 +190,6 @@ var CategoryController = {
                     console.log(err);
                     res.status(500).json({
                         status: false,
-                        data: {},
                         error: "Server side error!",
                     });
                 });
@@ -193,7 +197,6 @@ var CategoryController = {
             console.log(error);
             res.status(500).json({
                 status: false,
-                data: {},
                 error: "Server side error!",
             });
         }

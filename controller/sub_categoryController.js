@@ -13,7 +13,8 @@ var Sub_CategoryController = {
                 description: req.bodyString("description"),
                 category_id: enc_dec.decrypt(req.bodyString("category_id")),
                 status: req.bodyString("status"),
-                service_image: req.all_files.service_image,
+                service_image:
+                    STATIC_URL + "subcategory/" + req.all_files.service_image,
             };
             await Sub_CategoryModel.add(data)
                 .then((result) => {
@@ -46,7 +47,8 @@ var Sub_CategoryController = {
                 description: req.bodyString("description"),
                 category_id: enc_dec.decrypt(req.bodyString("category_id")),
                 status: req.bodyString("status"),
-                service_image: req.all_files.service_image,
+                service_image:
+                    STATIC_URL + "subcategory/" + req.all_files.service_image,
             };
             await Sub_CategoryModel.updateDetails({ id: id }, data)
                 .then((result) => {
@@ -197,11 +199,14 @@ var Sub_CategoryController = {
     delete: async (req, res) => {
         try {
             let id = enc_dec.decrypt(req.bodyString("sub_category_id"));
-            await Sub_CategoryModel.delete({ id: id })
+            let data = {
+                deleted: req.bodyString("deleted"),
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await Sub_CategoryModel.updateDetails({ id: id }, data)
                 .then(async (result) => {
                     res.status(200).json({
                         status: true,
-                        data: response,
                         message: "Sub-Category deleted successfully!",
                     });
                 })
@@ -209,7 +214,6 @@ var Sub_CategoryController = {
                     console.log(err);
                     res.status(500).json({
                         status: false,
-                        data: {},
                         error: "Server side error!",
                     });
                 });
@@ -217,7 +221,6 @@ var Sub_CategoryController = {
             console.log(error);
             res.status(500).json({
                 status: false,
-                data: {},
                 error: "Server side error!",
             });
         }

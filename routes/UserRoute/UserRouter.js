@@ -51,6 +51,7 @@ router.post(
 router.post("/check-user", authController.check_user);
 router.post("/list", authController.list);
 router.post("/block-unblock", authController.block_unblock);
+router.post("/delete", authController.delete);
 router.post(
     "/become-expert",
     checkPermission,

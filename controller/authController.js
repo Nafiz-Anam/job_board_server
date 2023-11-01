@@ -1264,6 +1264,30 @@ var AuthController = {
         }
     },
 
+    delete: async (req, res) => {
+        let id = enc_dec.decrypt(req.bodyString("user_id"));
+        let deleted = req.bodyString("deleted");
+        let msgStatus = "";
+
+        try {
+            let user_data = {
+                deleted: deleted,
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await UserModel.updateDetails({ id: id }, user_data, "users");
+            res.status(200).json({
+                status: true,
+                message: `User deleted successfully!`,
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: true,
+                message: `Unable to delete user.`,
+            });
+        }
+    },
+
     login_list: async (req, res) => {
         try {
             let limit = {

@@ -52,7 +52,6 @@ var ServiceController = {
     },
 
     create: async (req, res) => {
-        console.log("all_files =>", req.all_files);
         try {
             let files = req.all_files?.service_img;
             if (!files) {
@@ -229,7 +228,8 @@ var ServiceController = {
                             service_id: val?.service_id
                                 ? enc_dec.encrypt(val?.service_id)
                                 : "",
-                            service_details: service_details && service_details[0],
+                            service_details:
+                                service_details && service_details[0],
                             client_id: val?.client_id
                                 ? enc_dec.encrypt(val?.client_id)
                                 : "",
@@ -498,11 +498,14 @@ var ServiceController = {
     delete: async (req, res) => {
         try {
             let id = enc_dec.decrypt(req.bodyString("job_id"));
-            await ServiceModel.delete({ id: id })
+            let data = {
+                deleted: req.bodyString("deleted"),
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await ServiceModel.updateDetails({ id: id }, data)
                 .then(async (result) => {
                     res.status(200).json({
                         status: true,
-                        data: response,
                         message: "Job deleted successfully!",
                     });
                 })
@@ -510,7 +513,6 @@ var ServiceController = {
                     console.log(err);
                     res.status(500).json({
                         status: false,
-                        data: {},
                         error: "Server side error!",
                     });
                 });
@@ -518,7 +520,6 @@ var ServiceController = {
             console.log(error);
             res.status(500).json({
                 status: false,
-                data: {},
                 error: "Server side error!",
             });
         }

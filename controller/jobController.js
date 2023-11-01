@@ -7,15 +7,7 @@ const moment = require("moment");
 
 var JobController = {
     create: async (req, res) => {
-        console.log("all_files =>", req.all_files);
         try {
-            // let files = req.all_files.project_files;
-            // const filesWithStaticUrl = files.map(
-            //     (file) => STATIC_URL + "jobs/" + file
-            // );
-            // const filesStringified = JSON.stringify(filesWithStaticUrl);
-            // console.log(filesStringified);
-
             let data = {
                 title: req.bodyString("title"),
                 posted_by: req.user.id,
@@ -32,13 +24,13 @@ var JobController = {
                 min_pay_amount: req.bodyString("min_pay_amount"),
                 max_pay_amount: req.bodyString("max_pay_amount"),
                 attach_video: req.all_files?.attach_video
-                    ? req.all_files?.attach_video[0]
+                    ? STATIC_URL + "jobs/" + req.all_files?.attach_video[0]
                     : "",
                 attach_file: req.all_files?.attach_file
-                    ? req.all_files?.attach_file[0]
+                    ? STATIC_URL + "jobs/" + req.all_files?.attach_file[0]
                     : "",
                 attach_img: req.all_files?.attach_img
-                    ? req.all_files?.attach_img[0]
+                    ? STATIC_URL + "jobs/" + req.all_files?.attach_img[0]
                     : "",
             };
             await JobModel.add(data)
@@ -120,11 +112,6 @@ var JobController = {
     update: async (req, res) => {
         let id = enc_dec.decrypt(req.bodyString("job_id"));
         try {
-            // let files = req.all_files.project_files;
-            // const filesWithStaticUrl = files.map(
-            //     (file) => STATIC_URL + "jobs/" + file
-            // );
-            // const filesStringified = JSON.stringify(filesWithStaticUrl);
             const currentDatetime = moment();
             let data = {
                 title: req.bodyString("title"),
@@ -142,13 +129,13 @@ var JobController = {
                 min_pay_amount: req.bodyString("min_pay_amount"),
                 max_pay_amount: req.bodyString("max_pay_amount"),
                 attach_video: req.all_files?.attach_video
-                    ? req.all_files?.attach_video[0]
+                    ? STATIC_URL + "jobs/" + req.all_files?.attach_video[0]
                     : "",
                 attach_file: req.all_files?.attach_file
-                    ? req.all_files?.attach_file[0]
+                    ? STATIC_URL + "jobs/" + req.all_files?.attach_file[0]
                     : "",
                 attach_img: req.all_files?.attach_img
-                    ? req.all_files?.attach_img[0]
+                    ? STATIC_URL + "jobs/" + req.all_files?.attach_img[0]
                     : "",
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
@@ -486,11 +473,14 @@ var JobController = {
     delete: async (req, res) => {
         try {
             let id = enc_dec.decrypt(req.bodyString("job_id"));
-            await JobModel.delete({ id: id })
+            let data = {
+                deleted: req.bodyString("deleted"),
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await JobModel.updateDetails({ id: id }, data)
                 .then(async (result) => {
                     res.status(200).json({
                         status: true,
-                        data: response,
                         message: "Job deleted successfully!",
                     });
                 })
@@ -498,7 +488,6 @@ var JobController = {
                     console.log(err);
                     res.status(500).json({
                         status: false,
-                        data: {},
                         error: "Server side error!",
                     });
                 });
@@ -506,7 +495,6 @@ var JobController = {
             console.log(error);
             res.status(500).json({
                 status: false,
-                data: {},
                 error: "Server side error!",
             });
         }
