@@ -1001,7 +1001,7 @@ var AuthController = {
                     { id: val?.sub_category_id }
                 );
                 let age = await helpers.calculateAge(
-                    user_details[0]?.birth_date
+                    val?.birth_date
                 );
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",

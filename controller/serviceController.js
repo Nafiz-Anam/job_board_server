@@ -55,7 +55,7 @@ var ServiceController = {
         console.log("all_files =>", req.all_files);
         try {
             let files = req.all_files?.service_img;
-            if(!files){
+            if (!files) {
                 return res.status(500).json({
                     status: false,
                     message: "Unable to add service without files. Try again!",
@@ -219,11 +219,17 @@ var ServiceController = {
                     console.log(result);
                     let response = [];
                     for (let val of result) {
+                        let service_details = await helpers.get_data_list(
+                            "*",
+                            "services",
+                            { id: val?.service_id }
+                        );
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             service_id: val?.service_id
                                 ? enc_dec.encrypt(val?.service_id)
                                 : "",
+                            service_details: service_details && service_details[0],
                             client_id: val?.client_id
                                 ? enc_dec.encrypt(val?.client_id)
                                 : "",
