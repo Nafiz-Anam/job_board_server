@@ -18,9 +18,10 @@ var dbModel = {
         qb.release();
         return response;
     },
-    booking: async (data) => {
+    add_v2: async (data, table) => {
+        const dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
-        let response = await qb.returning("id").insert(dbtable2, data);
+        let response = await qb.returning("id").insert(dbtable, data);
         qb.release();
         return response;
     },
@@ -304,6 +305,13 @@ var dbModel = {
     //     return response[0];
     // },
     updateDetails: async (condition, data) => {
+        let qb = await pool.get_connection();
+        let response = await qb.set(data).where(condition).update(dbtable);
+        qb.release();
+        return response;
+    },
+    updateDetailsV2: async (condition, data, table) => {
+        const dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(dbtable);
         qb.release();

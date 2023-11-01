@@ -56,59 +56,6 @@ var JobController = {
         }
     },
 
-    apply: async (req, res) => {
-        try {
-            let files = req.all_files?.project_img;
-            let filesStringified;
-            if (files) {
-                const filesWithStaticUrl = files.map(
-                    (file) => STATIC_URL + "jobs/" + file
-                );
-                filesStringified = JSON.stringify(filesWithStaticUrl);
-            }
-            console.log("filesStringified", filesStringified);
-            let job_id = enc_dec.decrypt(req.bodyString("job_id"));
-            let client_id = await helpers.get_data_list("posted_by", "jobs", {
-                id: job_id,
-            });
-
-            let data = {
-                cover_letter: req.bodyString("cover_letter"),
-                expert_id: req.user?.id,
-                client_id: client_id.length ? client_id[0].posted_by : "",
-                job_id: job_id,
-                is_hourly: req.bodyString("is_hourly"),
-                from_rate: req.bodyString("from_rate"),
-                to_rate: req.bodyString("to_rate"),
-                fix_budget: req.bodyString("fix_budget"),
-                attach_file: req.all_files?.attach_file
-                    ? STATIC_URL + "jobs/" + req.all_files?.attach_file[0]
-                    : "",
-                project_img: filesStringified,
-            };
-            await JobModel.apply(data)
-                .then((result) => {
-                    res.status(200).json({
-                        status: true,
-                        message: "Job applied successfully!",
-                    });
-                })
-                .catch((err) => {
-                    console.log(err);
-                    res.status(500).json({
-                        status: false,
-                        message: "Unable to apply for job. Try again!",
-                    });
-                });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                message: "Server side error! Try again.",
-            });
-        }
-    },
-
     update: async (req, res) => {
         let id = enc_dec.decrypt(req.bodyString("job_id"));
         try {
@@ -310,105 +257,6 @@ var JobController = {
         }
     },
 
-    applied_list: async (req, res) => {
-        try {
-            let limit = {
-                perpage: 10,
-                start: 0,
-            };
-            if (req.bodyString("perpage") && req.bodyString("page")) {
-                perpage = parseInt(req.bodyString("perpage"));
-                start = parseInt(req.bodyString("page"));
-                limit.perpage = perpage;
-                limit.start = (start - 1) * perpage;
-            }
-
-            let condition = {};
-
-            if (req.bodyString("req_status")) {
-                condition.req_status = req.bodyString("req_status");
-            }
-            if (req.bodyString("is_hourly")) {
-                condition.is_hourly = req.bodyString("is_hourly");
-            }
-            if (req.bodyString("client_id")) {
-                condition.client_id = enc_dec.decrypt(
-                    req.bodyString("client_id")
-                );
-            }
-            if (req.bodyString("expert_id")) {
-                condition.expert_id = enc_dec.decrypt(
-                    req.bodyString("expert_id")
-                );
-            }
-            if (req.bodyString("job_id")) {
-                condition.job_id = enc_dec.decrypt(req.bodyString("job_id"));
-            }
-
-            const totalCount = await JobModel.applied_get_count(condition, {});
-            console.log(totalCount);
-
-            await JobModel.applied_select_list(condition, {}, limit)
-                .then(async (result) => {
-                    console.log(result);
-                    let response = [];
-                    for (let val of result) {
-                        let temp = {
-                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
-                            expert_id: val?.expert_id
-                                ? enc_dec.encrypt(val?.expert_id)
-                                : "",
-                            client_id: val?.client_id
-                                ? enc_dec.encrypt(val?.client_id)
-                                : "",
-                            job_id: val?.job_id
-                                ? enc_dec.encrypt(val?.job_id)
-                                : "",
-                            req_status:
-                                val?.req_status == 1 ? "pending" : "accepted",
-                            is_hourly: val?.is_hourly == 0 ? false : true,
-                            cover_letter: val?.cover_letter
-                                ? val?.cover_letter
-                                : "",
-                            fix_budget: val?.fix_budget ? val?.fix_budget : 0,
-                            from_rate: val?.from_rate ? val?.from_rate : 0,
-                            to_rate: val?.to_rate ? val?.to_rate : 0,
-                            project_img: val?.project_img
-                                ? val?.project_img
-                                : "",
-                            attach_file: val?.attach_file
-                                ? val?.attach_file
-                                : "",
-                            created_at: val?.created_at ? val?.created_at : "",
-                            updated_at: val?.updated_at ? val?.updated_at : "",
-                        };
-                        response.push(temp);
-                    }
-                    res.status(200).json({
-                        status: true,
-                        data: response,
-                        message: "Jobs fetched successfully!",
-                        total: totalCount,
-                    });
-                })
-                .catch((err) => {
-                    console.log(err);
-                    res.status(500).json({
-                        status: false,
-                        data: {},
-                        error: "Server side error!",
-                    });
-                });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-                status: false,
-                data: {},
-                error: "Server side error!",
-            });
-        }
-    },
-
     details: async (req, res) => {
         try {
             let id = enc_dec.decrypt(req.bodyString("job_id"));
@@ -495,6 +343,157 @@ var JobController = {
             console.log(error);
             res.status(500).json({
                 status: false,
+                error: "Server side error!",
+            });
+        }
+    },
+
+    apply: async (req, res) => {
+        try {
+            let files = req.all_files?.project_img;
+            let filesStringified;
+            if (files) {
+                const filesWithStaticUrl = files.map(
+                    (file) => STATIC_URL + "jobs/" + file
+                );
+                filesStringified = JSON.stringify(filesWithStaticUrl);
+            }
+
+            let job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            let client_id = await helpers.get_data_list("posted_by", "jobs", {
+                id: job_id,
+            });
+
+            let data = {
+                cover_letter: req.bodyString("cover_letter"),
+                expert_id: req.user?.id,
+                client_id: client_id.length ? client_id[0].posted_by : "",
+                job_id: job_id,
+                is_hourly: req.bodyString("is_hourly"),
+                from_rate: req.bodyString("from_rate"),
+                to_rate: req.bodyString("to_rate"),
+                fix_budget: req.bodyString("fix_budget"),
+                attach_file: req.all_files?.attach_file
+                    ? STATIC_URL + "jobs/" + req.all_files?.attach_file[0]
+                    : "",
+                project_img: filesStringified,
+            };
+            await JobModel.apply(data)
+                .then((result) => {
+                    res.status(200).json({
+                        status: true,
+                        message: "Job applied successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        message: "Unable to apply for job. Try again!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Server side error! Try again.",
+            });
+        }
+    },
+
+    applied_list: async (req, res) => {
+        try {
+            let limit = {
+                perpage: 10,
+                start: 0,
+            };
+            if (req.bodyString("perpage") && req.bodyString("page")) {
+                perpage = parseInt(req.bodyString("perpage"));
+                start = parseInt(req.bodyString("page"));
+                limit.perpage = perpage;
+                limit.start = (start - 1) * perpage;
+            }
+
+            let condition = {};
+
+            if (req.bodyString("req_status")) {
+                condition.req_status = req.bodyString("req_status");
+            }
+            if (req.bodyString("is_hourly")) {
+                condition.is_hourly = req.bodyString("is_hourly");
+            }
+            if (req.bodyString("client_id")) {
+                condition.client_id = enc_dec.decrypt(
+                    req.bodyString("client_id")
+                );
+            }
+            if (req.bodyString("expert_id")) {
+                condition.expert_id = enc_dec.decrypt(
+                    req.bodyString("expert_id")
+                );
+            }
+            if (req.bodyString("job_id")) {
+                condition.job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            }
+
+            const totalCount = await JobModel.applied_get_count(condition, {});
+
+            await JobModel.applied_select_list(condition, {}, limit)
+                .then(async (result) => {
+                    console.log(result);
+                    let response = [];
+                    for (let val of result) {
+                        let temp = {
+                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            expert_id: val?.expert_id
+                                ? enc_dec.encrypt(val?.expert_id)
+                                : "",
+                            client_id: val?.client_id
+                                ? enc_dec.encrypt(val?.client_id)
+                                : "",
+                            job_id: val?.job_id
+                                ? enc_dec.encrypt(val?.job_id)
+                                : "",
+                            req_status:
+                                val?.req_status == 1 ? "pending" : "accepted",
+                            is_hourly: val?.is_hourly == 0 ? false : true,
+                            cover_letter: val?.cover_letter
+                                ? val?.cover_letter
+                                : "",
+                            fix_budget: val?.fix_budget ? val?.fix_budget : 0,
+                            from_rate: val?.from_rate ? val?.from_rate : 0,
+                            to_rate: val?.to_rate ? val?.to_rate : 0,
+                            project_img: val?.project_img
+                                ? val?.project_img
+                                : "",
+                            attach_file: val?.attach_file
+                                ? val?.attach_file
+                                : "",
+                            created_at: val?.created_at ? val?.created_at : "",
+                            updated_at: val?.updated_at ? val?.updated_at : "",
+                        };
+                        response.push(temp);
+                    }
+                    res.status(200).json({
+                        status: true,
+                        data: response,
+                        message: "Jobs fetched successfully!",
+                        total: totalCount,
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
                 error: "Server side error!",
             });
         }

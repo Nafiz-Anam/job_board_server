@@ -87,9 +87,16 @@ var Sub_CategoryController = {
             }
 
             let condition = {};
+            if (req.bodyString("category_id")) {
+                condition.category_id = enc_dec.decrypt(
+                    req.bodyString("category_id")
+                );
+            }
+            if (req.bodyString("status")) {
+                condition.status = req.bodyString("status");
+            }
 
             const totalCount = await Sub_CategoryModel.get_count(condition);
-            console.log(totalCount);
 
             await Sub_CategoryModel.select_list(condition, limit)
                 .then(async (result) => {

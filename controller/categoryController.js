@@ -82,6 +82,9 @@ var CategoryController = {
             }
 
             let condition = {};
+            if (req.bodyString("status")) {
+                condition.status = req.bodyString("status");
+            }
 
             const totalCount = await CategoryModel.get_count(condition);
             console.log(totalCount);

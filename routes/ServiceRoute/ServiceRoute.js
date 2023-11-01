@@ -10,8 +10,6 @@ router.post(
     serviceUploader,
     ServiceController.create
 );
-router.post("/book", checkExpertToken, ServiceController.booking);
-router.post("/bookings", ServiceController.booking_list);
 // router.post(
 //     "/update",
 //     checkPermission,
@@ -27,5 +25,17 @@ router.post(
 );
 
 router.post("/delete", checkPermission, ServiceController.delete);
+router.post("/book", checkExpertToken, ServiceController.booking);
+router.post("/bookings", ServiceController.booking_list);
+router.post(
+    "/booking/cancel",
+    checkPermission,
+    ServiceController.cancel_booking
+);
+router.post(
+    "/booking/reschedule",
+    checkPermission,
+    ServiceController.rescheduled
+);
 
 module.exports = router;

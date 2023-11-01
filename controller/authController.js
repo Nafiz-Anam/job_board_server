@@ -773,6 +773,32 @@ var AuthController = {
 
             let condition = { expert_request: 1 };
 
+            if (req.bodyString("status")) {
+                condition.status = req.bodyString("status");
+            }
+            if (req.bodyString("expert_request")) {
+                condition.expert_request = req.bodyString("expert_request");
+            }
+            if (req.bodyString("gender")) {
+                condition.gender = req.bodyString("gender");
+            }
+            if (req.bodyString("city")) {
+                condition.city = req.bodyString("city");
+            }
+            if (req.bodyString("state")) {
+                condition.state = req.bodyString("state");
+            }
+            if (req.bodyString("category_id")) {
+                condition.category_id = enc_dec.decrypt(
+                    req.bodyString("category_id")
+                );
+            }
+            if (req.bodyString("sub_category_id")) {
+                condition.sub_category_id = enc_dec.decrypt(
+                    req.bodyString("sub_category_id")
+                );
+            }
+
             const totalCount = await UserModel.get_count(
                 condition,
                 {},
@@ -1266,12 +1292,10 @@ var AuthController = {
 
     delete: async (req, res) => {
         let id = enc_dec.decrypt(req.bodyString("user_id"));
-        let deleted = req.bodyString("deleted");
-        let msgStatus = "";
 
         try {
             let user_data = {
-                deleted: deleted,
+                deleted: req.bodyString("deleted"),
                 updated_at: moment().format("YYYY-MM-DD HH:mm"),
             };
             await UserModel.updateDetails({ id: id }, user_data, "users");

@@ -28,7 +28,7 @@ var ServiceController = {
                 payment_method: req.bodyString("payment_method"),
                 payment_id: req.bodyString("payment_id"),
             };
-            await ServiceModel.booking(data)
+            await ServiceModel.add_v2(data, "bookings")
                 .then((result) => {
                     res.status(200).json({
                         status: true,
@@ -40,6 +40,47 @@ var ServiceController = {
                     res.status(500).json({
                         status: false,
                         message: "Unable to book service. Try again!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Server side error! Try again.",
+            });
+        }
+    },
+
+    rescheduled: async (req, res) => {
+        try {
+            let id = enc_dec.decrypt(req.bodyString("booking_id"));
+            let update_data = {
+                booking_date: req.bodyString("booking_date"),
+                booking_time: req.bodyString("booking_time"),
+                working_hours: req.bodyString("working_hours"),
+                address: req.bodyString("address"),
+                location: req.bodyString("location"),
+                rescheduled: 1,
+                payment_method: req.bodyString("payment_method"),
+                payment_id: req.bodyString("payment_id"),
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await ServiceModel.updateDetailsV2(
+                { id: id },
+                update_data,
+                "bookings"
+            )
+                .then((result) => {
+                    res.status(200).json({
+                        status: true,
+                        message: "Service rescheduled successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        message: "Unable to reschedule. Try again!",
                     });
                 });
         } catch (error) {
@@ -206,6 +247,18 @@ var ServiceController = {
             if (req.bodyString("payment_method")) {
                 condition.payment_method = req.bodyString("payment_method");
             }
+            if (req.bodyString("work_status")) {
+                condition.work_status = req.bodyString("work_status");
+            }
+            if (req.bodyString("cancelled")) {
+                condition.cancelled = req.bodyString("cancelled");
+            }
+            if (req.bodyString("deleted")) {
+                condition.deleted = req.bodyString("deleted");
+            }
+            if (req.bodyString("rescheduled")) {
+                condition.rescheduled = req.bodyString("rescheduled");
+            }
 
             const totalCount = await ServiceModel.booking_get_count(
                 condition,
@@ -228,8 +281,54 @@ var ServiceController = {
                             service_id: val?.service_id
                                 ? enc_dec.encrypt(val?.service_id)
                                 : "",
-                            service_details:
-                                service_details && service_details[0],
+                            service_details: service_details && {
+                                posted_by: service_details[0]?.posted_by
+                                    ? enc_dec.encrypt(
+                                          service_details[0]?.posted_by
+                                      )
+                                    : "",
+                                title: service_details[0]?.title
+                                    ? service_details[0]?.title
+                                    : "",
+                                description: service_details[0]?.description
+                                    ? service_details[0]?.description
+                                    : "",
+                                category_id: service_details[0]?.category_id
+                                    ? enc_dec.encrypt(
+                                          service_details[0]?.category_id
+                                      )
+                                    : "",
+                                sub_category_id: service_details[0]
+                                    ?.sub_category_id
+                                    ? enc_dec.encrypt(
+                                          service_details[0]?.sub_category_id
+                                      )
+                                    : "",
+                                tags: service_details[0]?.tags
+                                    ? service_details[0]?.tags
+                                    : "",
+                                budget: service_details[0]?.budget
+                                    ? service_details[0]?.budget
+                                    : 0,
+                                cover_img: service_details[0]?.cover_img
+                                    ? service_details[0]?.cover_img
+                                    : "",
+                                attach_file: service_details[0]?.attach_file
+                                    ? service_details[0]?.attach_file
+                                    : "",
+                                cover_video: service_details[0]?.cover_video
+                                    ? service_details[0]?.cover_video
+                                    : "",
+                                service_img: service_details[0]?.service_img
+                                    ? service_details[0]?.service_img
+                                    : "",
+                                created_at: service_details[0]?.created_at
+                                    ? service_details[0]?.created_at
+                                    : "",
+                                updated_at: service_details[0]?.updated_at
+                                    ? service_details[0]?.updated_at
+                                    : "",
+                            },
                             client_id: val?.client_id
                                 ? enc_dec.encrypt(val?.client_id)
                                 : "",
@@ -310,9 +409,9 @@ var ServiceController = {
             if (req.user?.type === "expert") {
                 condition.posted_by = req.user?.id;
             }
-            if (req.bodyString("expert_id")) {
+            if (req.bodyString("posted_by")) {
                 condition.posted_by = enc_dec.decrypt(
-                    req.bodyString("expert_id")
+                    req.bodyString("posted_by")
                 );
             }
             if (req.bodyString("req_status")) {
@@ -320,6 +419,16 @@ var ServiceController = {
             }
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");
+            }
+            if (req.bodyString("category_id")) {
+                condition.category_id = enc_dec.decrypt(
+                    req.bodyString("category_id")
+                );
+            }
+            if (req.bodyString("sub_category_id")) {
+                condition.sub_category_id = enc_dec.decrypt(
+                    req.bodyString("sub_category_id")
+                );
             }
 
             const totalCount = await ServiceModel.get_count(condition, {});
@@ -497,7 +606,7 @@ var ServiceController = {
 
     delete: async (req, res) => {
         try {
-            let id = enc_dec.decrypt(req.bodyString("job_id"));
+            let id = enc_dec.decrypt(req.bodyString("service_id"));
             let data = {
                 deleted: req.bodyString("deleted"),
                 updated_at: moment().format("YYYY-MM-DD HH:mm"),
@@ -506,7 +615,7 @@ var ServiceController = {
                 .then(async (result) => {
                     res.status(200).json({
                         status: true,
-                        message: "Job deleted successfully!",
+                        message: "Service deleted successfully!",
                     });
                 })
                 .catch((err) => {
@@ -518,6 +627,47 @@ var ServiceController = {
                 });
         } catch (error) {
             console.log(error);
+            res.status(500).json({
+                status: false,
+                error: "Server side error!",
+            });
+        }
+    },
+
+    cancel_booking: async (req, res) => {
+        try {
+            const bookingId = enc_dec.decrypt(req.bodyString("booking_id"));
+
+            // Prepare data for cancelled bookings
+            const cancel_data = {
+                cancelled_by: req.user.id,
+                booking_id: bookingId,
+                reason: req.bodyString("reason"),
+                comment: req.bodyString("comment"),
+            };
+
+            // Prepare data for updating booking details
+            const update_data = {
+                cancelled: 1,
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+
+            // Add cancelled booking data
+            await ServiceModel.add_v2(cancel_data, "cancelled_bookings");
+
+            // Update booking details
+            await ServiceModel.updateDetailsV2(
+                { id: bookingId },
+                update_data,
+                "bookings"
+            );
+
+            res.status(200).json({
+                status: true,
+                message: "Booking cancelled successfully!",
+            });
+        } catch (error) {
+            console.error(error);
             res.status(500).json({
                 status: false,
                 error: "Server side error!",
