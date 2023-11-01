@@ -1000,9 +1000,7 @@ var AuthController = {
                     "sub_categories",
                     { id: val?.sub_category_id }
                 );
-                let age = await helpers.calculateAge(
-                    val?.birth_date
-                );
+                let age = await helpers.calculateAge(val?.birth_date);
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
                     profile_img: val?.profile_img ? val?.profile_img : "",
@@ -1280,8 +1278,9 @@ var AuthController = {
             }
             let id = enc_dec.decrypt(req.bodyString("id"));
 
-            const totalCount = await helpers.common_get_count(
+            const totalCount = await UserModel.get_count(
                 { user_id: id },
+                {},
                 "login_history"
             );
             await UserModel.select_list(
