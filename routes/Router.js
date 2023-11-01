@@ -6,6 +6,7 @@ const Sub_CategoryRouter = require("./Sub_CategoryRoute/Sub_CategoryRoute");
 const DepositRouter = require("./Sub_CategoryRoute/Sub_CategoryRoute");
 const WithdrawRouter = require("./WithdrawRoute/WithdrawRoute");
 const PaymentRouter = require("./PaymentRoute/PaymentRoute");
+const ReviewRouter = require("./ReviewRoute/ReviewRoute");
 // const ExpertsRouter = require("./ExpertsRoute/ExpertsRoute");
 // const ClientsRouter = require("./ExpertsRoute/ExpertsRoute");
 const AdminRouter = require("./AdminRoute/AdminRoute");
@@ -22,5 +23,6 @@ router.use("/sub-category", Sub_CategoryRouter);
 router.use("/deposit", DepositRouter);
 router.use("/withdraw", WithdrawRouter);
 router.use("/payment", PaymentRouter);
+router.use("/review", ReviewRouter);
 
 module.exports = router;
