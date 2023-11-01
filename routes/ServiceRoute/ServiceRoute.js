@@ -11,7 +11,7 @@ router.post(
     ServiceController.create
 );
 router.post("/book", checkExpertToken, ServiceController.booking);
-router.post("/bookings", checkExpertToken, ServiceController.booking_list);
+router.post("/bookings", ServiceController.booking_list);
 // router.post(
 //     "/update",
 //     checkPermission,
