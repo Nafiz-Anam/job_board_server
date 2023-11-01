@@ -511,6 +511,34 @@ var JobController = {
             });
         }
     },
+
+    update_request_status: async (req, res) => {
+        try {
+            const currentDatetime = moment();
+
+            const job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            const req_status = req.bodyString("req_status");
+
+            const update_data = {
+                req_status,
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+
+            await JobModel.updateDetails({ id: job_id }, update_data);
+
+            return res.status(200).json({
+                status: true,
+                message: "Request status changed successfully",
+            });
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
 };
 
 module.exports = JobController;
