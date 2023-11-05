@@ -25,7 +25,7 @@ router.post(
 );
 
 router.post("/delete", checkPermission, ServiceController.delete);
-router.post("/book", checkExpertToken, ServiceController.booking);
+router.post("/book", checkPermission, ServiceController.booking);
 router.post("/bookings", ServiceController.booking_list);
 router.post(
     "/booking/cancel",
