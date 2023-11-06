@@ -74,9 +74,20 @@ var dbModel = {
         return response;
     },
 
-    select_list: async (date_condition, limit) => {
+    select_list: async (condition, date_condition, limit) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
+
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
 
         if (Object.keys(date_condition).length) {
             let date_condition_str = await helpers.get_date_between_condition(

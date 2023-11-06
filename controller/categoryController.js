@@ -5,7 +5,6 @@ const helpers = require("../utilities/helper/general_helper");
 const STATIC_URL = process.env.STATIC_FILE_URL;
 const moment = require("moment");
 
-
 var CategoryController = {
     create: async (req, res) => {
         try {
@@ -89,9 +88,9 @@ var CategoryController = {
             }
 
             const totalCount = await CategoryModel.get_count(condition);
-            console.log(totalCount);
+            // console.log(totalCount);
 
-            await CategoryModel.select_list(condition, limit)
+            await CategoryModel.select_list(condition, {}, limit)
                 .then(async (result) => {
                     console.log(result);
                     let response = [];

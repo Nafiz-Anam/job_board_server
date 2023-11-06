@@ -435,7 +435,7 @@ var ServiceController = {
             }
 
             const totalCount = await ServiceModel.get_count(condition, {});
-            console.log(totalCount);
+            // console.log(totalCount);
 
             await ServiceModel.select_list(condition, {}, limit)
                 .then(async (result) => {

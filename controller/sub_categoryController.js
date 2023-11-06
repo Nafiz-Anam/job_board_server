@@ -87,7 +87,7 @@ var Sub_CategoryController = {
                 limit.start = (start - 1) * perpage;
             }
 
-            let condition = {deleted: 0};
+            let condition = { deleted: 0 };
             if (req.bodyString("category_id")) {
                 condition.category_id = enc_dec.decrypt(
                     req.bodyString("category_id")
@@ -99,7 +99,7 @@ var Sub_CategoryController = {
 
             const totalCount = await Sub_CategoryModel.get_count(condition);
 
-            await Sub_CategoryModel.select_list(condition, limit)
+            await Sub_CategoryModel.select_list(condition, {}, limit)
                 .then(async (result) => {
                     console.log(result);
                     let response = [];
