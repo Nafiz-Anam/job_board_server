@@ -87,7 +87,7 @@ var Sub_CategoryController = {
                 limit.start = (start - 1) * perpage;
             }
 
-            let condition = {};
+            let condition = {deleted: 0};
             if (req.bodyString("category_id")) {
                 condition.category_id = enc_dec.decrypt(
                     req.bodyString("category_id")

@@ -83,7 +83,7 @@ var CategoryController = {
                 limit.start = (start - 1) * perpage;
             }
 
-            let condition = {};
+            let condition = { deleted: 0 };
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");
             }
