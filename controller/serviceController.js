@@ -420,6 +420,9 @@ var ServiceController = {
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");
             }
+            if (req.bodyString("deleted")) {
+                condition.deleted = req.bodyString("deleted");
+            }
             if (req.bodyString("category_id")) {
                 condition.category_id = enc_dec.decrypt(
                     req.bodyString("category_id")

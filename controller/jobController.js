@@ -127,6 +127,9 @@ var JobController = {
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");
             }
+            if (req.bodyString("deleted")) {
+                condition.deleted = req.bodyString("deleted");
+            }
             if (req.bodyString("req_status")) {
                 condition.req_status = req.bodyString("req_status");
             }
