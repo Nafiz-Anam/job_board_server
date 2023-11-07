@@ -74,7 +74,7 @@ var dbModel = {
         return response;
     },
 
-    select_list: async (condition, date_condition, limit) => {
+    select_list: async (condition, date_condition, limit, search) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
 
@@ -102,6 +102,16 @@ var dbModel = {
             }
         }
 
+        if (Object.keys(search).length) {
+            let date_like_search_str =
+                await helpers.get_conditional_or_like_string(search);
+            if (final_cond == " where ") {
+                final_cond = final_cond + date_like_search_str;
+            } else {
+                final_cond = final_cond + " and " + date_like_search_str;
+            }
+        }
+
         if (final_cond == " where ") {
             final_cond = "";
         }
@@ -118,10 +128,7 @@ var dbModel = {
                 limit.start;
         } else {
             query =
-                "select * from " +
-                dbtable +
-                final_cond +
-                " ORDER BY id DESC";
+                "select * from " + dbtable + final_cond + " ORDER BY id DESC";
         }
 
         console.log("query => ", query);
@@ -150,9 +157,20 @@ var dbModel = {
         return response;
     },
 
-    get_count: async (date_condition) => {
+    get_count: async (condition, date_condition, search) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
+
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
 
         if (Object.keys(date_condition).length) {
             let date_condition_str = await helpers.get_date_between_condition(
@@ -164,6 +182,16 @@ var dbModel = {
                 final_cond = final_cond + date_condition_str;
             } else {
                 final_cond = final_cond + " and " + date_condition_str;
+            }
+        }
+
+        if (Object.keys(search).length) {
+            let date_like_search_str =
+                await helpers.get_conditional_or_like_string(search);
+            if (final_cond == " where ") {
+                final_cond = final_cond + date_like_search_str;
+            } else {
+                final_cond = final_cond + " and " + date_like_search_str;
             }
         }
 

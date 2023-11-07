@@ -40,12 +40,19 @@ var CategoryController = {
     update: async (req, res) => {
         let id = enc_dec.decrypt(req.bodyString("category_id"));
         try {
-            let data = {
-                name: req.bodyString("name"),
-                status: req.bodyString("status"),
-                service_image:
-                    STATIC_URL + "category/" + req?.all_files?.service_image,
-            };
+            let data = {};
+
+            if (req.bodyString("name")) {
+                data.name = req.bodyString("name");
+            }
+            if (req.bodyString("status")) {
+                data.status = req.bodyString("status");
+            }
+            if (req?.all_files && req?.all_files?.service_image) {
+                data.service_image =
+                    STATIC_URL + "category/" + req?.all_files?.service_image;
+            }
+
             await CategoryModel.updateDetails({ id: id }, data)
                 .then((result) => {
                     res.status(200).json({
@@ -83,14 +90,22 @@ var CategoryController = {
             }
 
             let condition = { deleted: 0 };
+            let search = {};
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");
             }
+            if (req.bodyString("search")) {
+                search.name = req.bodyString("search");
+            }
 
-            const totalCount = await CategoryModel.get_count(condition);
+            const totalCount = await CategoryModel.get_count(
+                condition,
+                {},
+                search
+            );
             // console.log(totalCount);
 
-            await CategoryModel.select_list(condition, {}, limit)
+            await CategoryModel.select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     console.log(result);
                     let response = [];

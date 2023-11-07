@@ -276,6 +276,16 @@ var ServiceController = {
                             "services",
                             { id: val?.service_id }
                         );
+                        let client_name = await helpers.get_data_list(
+                            "full_name",
+                            "users",
+                            { id: val?.client_id }
+                        );
+                        let expert_name = await helpers.get_data_list(
+                            "full_name",
+                            "users",
+                            { id: val?.expert_id }
+                        );
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             service_id: val?.service_id
@@ -332,9 +342,18 @@ var ServiceController = {
                             client_id: val?.client_id
                                 ? enc_dec.encrypt(val?.client_id)
                                 : "",
+                            client_name:
+                                client_name.length > 0
+                                    ? client_name[0].full_name
+                                    : "",
+                            expert_name:
+                                expert_name.length > 0
+                                    ? expert_name[0].full_name
+                                    : "",
                             expert_id: val?.expert_id
                                 ? enc_dec.encrypt(val?.expert_id)
                                 : "",
+                            payment_status: "",
                             req_status:
                                 val?.req_status == 1
                                     ? "pending"

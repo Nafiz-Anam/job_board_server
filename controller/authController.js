@@ -802,14 +802,16 @@ var AuthController = {
             const totalCount = await UserModel.get_count(
                 condition,
                 {},
-                "users"
+                "users",
+                {}
             );
 
             const result = await UserModel.select_list(
                 condition,
                 {},
                 limit,
-                "users"
+                "users",
+                {}
             );
 
             let response = await Promise.all(
@@ -1131,7 +1133,13 @@ var AuthController = {
             }
 
             let condition = {};
+            let search = {};
 
+            if (req.bodyString("search")) {
+                search.mobile_no = req.bodyString("search");
+                search.email = req.bodyString("search");
+                search.full_name = req.bodyString("search");
+            }
             if (req.bodyString("type")) {
                 condition.type = req.bodyString("type");
             }
@@ -1164,11 +1172,12 @@ var AuthController = {
             const totalCount = await UserModel.get_count(
                 condition,
                 {},
-                "users"
+                "users",
+                search
             );
             console.log(totalCount);
 
-            await UserModel.select_list(condition, {}, limit, "users")
+            await UserModel.select_list(condition, {}, limit, "users", search)
                 .then(async (result) => {
                     // console.log(result);
 

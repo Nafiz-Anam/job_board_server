@@ -43,14 +43,27 @@ var Sub_CategoryController = {
     update: async (req, res) => {
         let id = enc_dec.decrypt(req.bodyString("sub_category_id"));
         try {
-            let data = {
-                name: req.bodyString("name"),
-                description: req.bodyString("description"),
-                category_id: enc_dec.decrypt(req.bodyString("category_id")),
-                status: req.bodyString("status"),
-                service_image:
-                    STATIC_URL + "subcategory/" + req.all_files.service_image,
-            };
+            let data = {};
+
+            if (req.bodyString("name")) {
+                data.name = req.bodyString("name");
+            }
+            if (req.bodyString("description")) {
+                data.description = req.bodyString("description");
+            }
+            if (req.bodyString("status")) {
+                data.status = req.bodyString("status");
+            }
+            if (req?.all_files && req?.all_files?.service_image) {
+                data.service_image =
+                    STATIC_URL + "subcategory/" + req.all_files.service_image;
+            }
+            if (req.bodyString("category_id")) {
+                data.category_id = enc_dec.decrypt(
+                    req.bodyString("category_id")
+                );
+            }
+
             await Sub_CategoryModel.updateDetails({ id: id }, data)
                 .then((result) => {
                     res.status(200).json({
@@ -88,6 +101,7 @@ var Sub_CategoryController = {
             }
 
             let condition = { deleted: 0 };
+            let search = {}
             if (req.bodyString("category_id")) {
                 condition.category_id = enc_dec.decrypt(
                     req.bodyString("category_id")
@@ -97,9 +111,17 @@ var Sub_CategoryController = {
                 condition.status = req.bodyString("status");
             }
 
-            const totalCount = await Sub_CategoryModel.get_count(condition);
+            if(req.bodyString("search")){
+                search.name = req.bodyString("search");
+            }
 
-            await Sub_CategoryModel.select_list(condition, {}, limit)
+            const totalCount = await Sub_CategoryModel.get_count(
+                condition,
+                {},
+                search
+            );
+
+            await Sub_CategoryModel.select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     console.log(result);
                     let response = [];

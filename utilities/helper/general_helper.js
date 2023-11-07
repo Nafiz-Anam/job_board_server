@@ -574,18 +574,18 @@ var helpers = {
     //     let output_string1 = words.slice(0).join(" ");
     //     return output_string1;
     // },
-    // get_conditional_or_like_string: async (obj) => {
-    //     var output_string = "";
-    //     for (var key in obj) {
-    //         if (obj.hasOwnProperty(key)) {
-    //             output_string += "or " + key + " LIKE '%" + obj[key] + "%' ";
-    //         }
-    //     }
+    get_conditional_or_like_string: async (obj) => {
+        var output_string = "";
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                output_string += "or " + key + " LIKE '%" + obj[key] + "%' ";
+            }
+        }
 
-    //     let words = output_string.split(" ");
-    //     let output_string1 = words.slice(1).join(" ");
-    //     return output_string1;
-    // },
+        let words = output_string.split(" ");
+        let output_string1 = words.slice(1).join(" ");
+        return output_string1;
+    },
     // get_language_json: async (condition) => {
     //     let qb = await pool.get_connection();
     //     let response = await qb
