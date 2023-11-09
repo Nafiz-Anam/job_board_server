@@ -3,6 +3,7 @@ const env = process.env.ENVIRONMENT;
 const config = require("../config/config.json")[env];
 const pool = require("../config/database");
 const dbtable = config.table_prefix + "admin";
+const dbtable2 = config.table_prefix + "otps";
 const helpers = require("../utilities/helper/general_helper");
 
 var dbModel = {
@@ -10,6 +11,13 @@ var dbModel = {
         console.log("data => ", data);
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(dbtable, data);
+        qb.release();
+        return response;
+    },
+    add_otp: async (data) => {
+        console.log("data => ", data);
+        let qb = await pool.get_connection();
+        let response = await qb.returning("id").insert(dbtable2, data);
         qb.release();
         return response;
     },
@@ -29,6 +37,13 @@ var dbModel = {
     select: async (condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(dbtable);
+        qb.release();
+        console.log(qb.last_query());
+        return response;
+    },
+    select_otp: async (condition) => {
+        let qb = await pool.get_connection();
+        let response = await qb.select("*").where(condition).get(dbtable2);
         qb.release();
         console.log(qb.last_query());
         return response;
