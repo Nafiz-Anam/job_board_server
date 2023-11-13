@@ -267,6 +267,7 @@ var AuthController = {
                     mobile_no,
                     user_no: "USR" + user_no,
                     referral_code: "MREXPERT" + referral_code,
+                    referred_by: req.bodyString("referral_code"),
                 };
                 const insertionResult = await UserModel.add(userData, "users");
 
@@ -1016,6 +1017,8 @@ var AuthController = {
 
             if (req.bodyString("user_id")) {
                 condition.id = enc_dec.decrypt(req.bodyString("user_id"));
+            } else if (req.bodyString("referral_code")) {
+                condition.referral_code = req.bodyString("referral_code");
             } else {
                 condition.id = id;
             }
