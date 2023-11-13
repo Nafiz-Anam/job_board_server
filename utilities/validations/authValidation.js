@@ -200,6 +200,38 @@ const authValidation = {
         }
     },
 
+    otp_verify_2fa: async (req, res, next) => {
+        const schema = Joi.object({
+            otp: Joi.string().required().length(6).messages({
+                "any.required": "OTP is required",
+                "string.length": "OTP must be exactly 6 characters long",
+                "string.empty": "OTP cannot be empty",
+            }),
+            otp_token: Joi.string().required().messages({
+                "any.required": "OTP token is required",
+                "string.empty": "OTP token cannot be empty",
+            }),
+        });
+
+        try {
+            const result = schema.validate(req.body);
+            if (result.error) {
+                res.status(500).json({
+                    status: false,
+                    error: result.error.message,
+                });
+            } else {
+                next();
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                error: "Server side error!",
+            });
+        }
+    },
+
     set_pin: async (req, res, next) => {
         const schema = Joi.object({
             token: Joi.string().required().messages({

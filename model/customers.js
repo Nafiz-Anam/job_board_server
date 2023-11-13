@@ -365,7 +365,7 @@ var dbModel = {
         qb.release();
         return response[0];
     },
-    selectMobileOtpData: async ( condition) => {
+    selectMobileOtpData: async (condition) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
         if (Object.keys(condition).length) {
@@ -381,7 +381,8 @@ var dbModel = {
         if (final_cond == " where ") {
             final_cond = "";
         }
-        let query = "select * from mx_otps" + final_cond;
+        let query =
+            "select * from mx_otps" + final_cond + "order by id desc limit 1";
         console.log("query => ", query);
         let response = await qb.query(query);
         qb.release();

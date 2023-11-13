@@ -51,22 +51,80 @@ var AuthController = {
                 });
             }
 
-            const payload = {
-                id: check_user_exist[0].id,
-                type: check_user_exist[0].type,
-            };
-            const token = accessToken(payload);
+            if (check_user_exist[0].two_factor == 1) {
+                let otp = await helpers.generateOtp(6);
+                const title = "Mr. Xpert";
+                const mobile_number = `${check_user_exist[0].mobile_no}`;
 
-            // Save user login info
-            const loginInfo = await helpers.getUserLoginInfo(req);
-            await helpers.saveUserLoginInfo(check_user_exist[0]?.id, loginInfo);
+                const welcomeMessage =
+                    `Welcome back ${check_user_exist[0].full_name} to ` +
+                    title +
+                    "! Your verification code is: " +
+                    otp +
+                    ". Do not share it with anyone.";
 
-            return res.status(200).json({
-                status: true,
-                token,
-                type: check_user_exist[0].type,
-                message: "User login successfully!",
-            });
+                await otpSender(mobile_number, welcomeMessage)
+                    .then(async (data) => {
+                        // console.log("sms res =>", data);
+                        const uuid = new SequenceUUID({
+                            valid: true,
+                            dashes: true,
+                            unsafeBuffer: true,
+                        });
+
+                        let token = uuid.generate();
+                        let ins_data = {
+                            mobile_no: mobile_no,
+                            otp: otp,
+                            token: token,
+                            sms_id: data,
+                        };
+                        CustomerModel.addMobileOTP(ins_data)
+                            .then(async (result) => {
+                                res.status(201).json({
+                                    status: true,
+                                    token: token,
+                                    type: check_user_exist[0].type,
+                                    message:
+                                        "Two-factor auth needed. Please, verify OTP.",
+                                });
+                            })
+                            .catch((error) => {
+                                console.log(error);
+                                res.status(500).json({
+                                    status: false,
+                                    message: error.message,
+                                });
+                            });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        res.status(500).json({
+                            status: false,
+                            message: error.message,
+                        });
+                    });
+            } else {
+                const payload = {
+                    id: check_user_exist[0].id,
+                    type: check_user_exist[0].type,
+                };
+                const token = accessToken(payload);
+
+                // Save user login info
+                const loginInfo = await helpers.getUserLoginInfo(req);
+                await helpers.saveUserLoginInfo(
+                    check_user_exist[0]?.id,
+                    loginInfo
+                );
+
+                return res.status(200).json({
+                    status: true,
+                    token,
+                    type: check_user_exist[0].type,
+                    message: "User login successfully!",
+                });
+            }
         } catch (error) {
             console.error(error);
             return res.status(500).json({
@@ -251,6 +309,54 @@ var AuthController = {
             res.status(500).json({
                 status: false,
                 message: error.message,
+            });
+        }
+    },
+
+    otp_verify_2fa: async (req, res) => {
+        try {
+            const otp = req.bodyString("otp");
+            const otpToken = req.bodyString("otp_token");
+
+            const result = await CustomerModel.selectMobileOtpData({
+                otp,
+                token: otpToken,
+            });
+
+            if (result) {
+                const mobile_no = result.mobile_no;
+                let user = await helpers.get_data_list("*", "users", {
+                    mobile_no,
+                });
+
+                const payload = {
+                    id: user[0].id,
+                    type: user[0].type,
+                };
+                const token = accessToken(payload);
+
+                await helpers.delete_common_entry(
+                    { otp, token: otpToken },
+                    "otps"
+                );
+
+                return res.status(200).json({
+                    status: true,
+                    token,
+                    type: user[0].type,
+                    message: "OTP verified.",
+                });
+            } else {
+                return res.status(500).json({
+                    status: false,
+                    message: "Wrong OTP, Try again!",
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
             });
         }
     },

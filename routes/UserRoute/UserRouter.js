@@ -20,6 +20,11 @@ router.post(
     authValidator.otp_verify,
     authController.otp_verify_v2
 );
+router.post(
+    "/verify_otp_2fa",
+    authValidator.otp_verify,
+    authController.otp_verify_2fa
+);
 router.post("/password/verify_otp", authController.password_otp_verify);
 router.post(
     "/add_password",
