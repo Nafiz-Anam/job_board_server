@@ -82,7 +82,7 @@ var AuthController = {
             let found = await helpers.get_data_list("*", "users", {
                 referral_code,
             });
-            if(found.length == 0){
+            if (found.length == 0) {
                 return res.status(500).json({
                     status: false,
                     message: "Invalid referral code!",
@@ -1230,7 +1230,9 @@ var AuthController = {
                             user_no: val?.user_no ? val?.user_no : "",
                             mobile_no: val?.mobile_no ? val?.mobile_no : "",
                             email: val?.email ? val?.email : "",
-                            referred_by: val?.referred_by ? val?.referred_by : "",
+                            referred_by: val?.referred_by
+                                ? val?.referred_by
+                                : "",
                             referral_code: val?.referral_code
                                 ? val?.referral_code
                                 : "",
@@ -1323,6 +1325,28 @@ var AuthController = {
         } catch (error) {
             console.log(error);
             res.status(500).send(error);
+        }
+    },
+
+    two_factor: async (req, res) => {
+        let id = req.user.id;
+
+        try {
+            let user_data = {
+                two_factor: req.bodyString("two_factor"),
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await UserModel.updateDetails({ id: id }, user_data, "users");
+            res.status(200).json({
+                status: true,
+                message: `Login security updated successfully!`,
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: true,
+                message: `Unable to update security.`,
+            });
         }
     },
 

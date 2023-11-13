@@ -74,5 +74,6 @@ router.post(
     authController.update_expert_request
 );
 router.post("/login/history", authController.login_list);
+router.post("/two_factor_auth", authController.two_factor);
 
 module.exports = router;
