@@ -94,6 +94,7 @@ var ServiceController = {
 
     create: async (req, res) => {
         try {
+            let service_no = await helpers.make_sequential_no("SRV");
             let files = req.all_files?.service_img;
             if (!files) {
                 return res.status(500).json({
@@ -108,6 +109,7 @@ var ServiceController = {
             console.log("filesStringified", filesStringified);
 
             let data = {
+                service_no: "SRV" + service_no,
                 posted_by: req.user.id,
                 title: req.bodyString("title"),
                 description: req.bodyString("description"),
@@ -462,6 +464,7 @@ var ServiceController = {
                     for (let val of result) {
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            service_no: val?.service_no ? val?.service_no : "",
                             posted_by: val?.posted_by
                                 ? enc_dec.encrypt(val?.posted_by)
                                 : "",

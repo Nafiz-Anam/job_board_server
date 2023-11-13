@@ -258,8 +258,16 @@ var AuthController = {
 
             if (result) {
                 const mobile_no = result.mobile_code + result.mobile_no;
+                let user_no = await helpers.make_sequential_no("USR");
+                let referral_code = await helpers.make_sequential_no(
+                    "MREXPERT"
+                );
 
-                const userData = { mobile_no };
+                const userData = {
+                    mobile_no,
+                    user_no: "USR" + user_no,
+                    referral_code: "MREXPERT" + referral_code,
+                };
                 const insertionResult = await UserModel.add(userData, "users");
 
                 if (insertionResult.insert_id) {
@@ -1032,6 +1040,8 @@ var AuthController = {
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
                     profile_img: val?.profile_img ? val?.profile_img : "",
+                    referral_code: val?.referral_code ? val?.referral_code : "",
+                    user_no: val?.user_no ? val?.user_no : "",
                     full_name: val?.full_name ? val?.full_name : "",
                     email: val?.email ? val?.email : "",
                     birth_date: val?.birth_date ? val?.birth_date : "",
@@ -1207,6 +1217,9 @@ var AuthController = {
                             user_no: val?.user_no ? val?.user_no : "",
                             mobile_no: val?.mobile_no ? val?.mobile_no : "",
                             email: val?.email ? val?.email : "",
+                            referral_code: val?.referral_code
+                                ? val?.referral_code
+                                : "",
                             age: age || "",
                             profile_img: val?.profile_img
                                 ? val?.profile_img

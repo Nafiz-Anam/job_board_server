@@ -170,6 +170,59 @@ var helpers = {
         qb.release();
         return response;
     },
+
+    make_sequential_no: async (pre) => {
+        let qb = await pool.get_connection();
+        let response = "";
+        switch (pre) {
+            case "JOB":
+                response = await qb
+                    .select("job_no")
+                    .order_by("id", "desc")
+                    .limit(1)
+                    .get(config.table_prefix + "jobs");
+                break;
+            case "USR":
+                response = await qb
+                    .select("user_no")
+                    .order_by("id", "desc")
+                    .limit(1)
+                    .get(config.table_prefix + "users");
+                break;
+            case "MREXPERT":
+                response = await qb
+                    .select("referral_code")
+                    .order_by("id", "desc")
+                    .limit(1)
+                    .get(config.table_prefix + "users");
+                break;
+            case "SRV":
+                response = await qb
+                    .select("service_no")
+                    .order_by("id", "desc")
+                    .limit(1)
+                    .get(config.table_prefix + "services");
+                break;
+        }
+        qb.release();
+        let numberPart = 1001;
+        if (response[0]?.job_no) {
+            numberPart = parseInt(response[0].job_no.match(/\d+/)[0]) + 1;
+        }
+        if (response[0]?.user_no) {
+            numberPart = parseInt(response[0].user_no.match(/\d+/)[0]) + 1;
+        }
+        if (response[0]?.referral_code) {
+            numberPart =
+                parseInt(response[0].referral_code.match(/\d+/)[0]) + 1;
+        }
+        if (response[0]?.service_no) {
+            numberPart = parseInt(response[0].service_no.match(/\d+/)[0]) + 1;
+        }
+
+        return numberPart;
+    },
+
     common_select_list: async (
         condition,
         date_condition,

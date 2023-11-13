@@ -8,7 +8,9 @@ const moment = require("moment");
 var JobController = {
     create: async (req, res) => {
         try {
+            let job_no = await helpers.make_sequential_no("JOB");
             let data = {
+                job_no: "JOB" + job_no,
                 title: req.bodyString("title"),
                 posted_by: req.user.id,
                 description: req.bodyString("description"),
@@ -178,6 +180,7 @@ var JobController = {
                         );
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            job_no: val?.job_no ? val?.job_no : "",
                             req_status:
                                 val?.req_status == 1
                                     ? "pending"
