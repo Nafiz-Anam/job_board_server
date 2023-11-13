@@ -509,7 +509,7 @@ var JobController = {
         try {
             const currentDatetime = moment();
 
-            const job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            const applied_id = enc_dec.decrypt(req.bodyString("applied_id"));
             const req_status = req.bodyString("req_status");
 
             const update_data = {
@@ -517,7 +517,7 @@ var JobController = {
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
 
-            await JobModel.updateDetails({ id: job_id }, update_data);
+            await JobModel.updateDetails({ id: applied_id }, update_data);
 
             return res.status(200).json({
                 status: true,
