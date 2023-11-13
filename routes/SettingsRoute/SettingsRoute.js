@@ -3,7 +3,7 @@ const SettingsController = require("../../controller/settingsController");
 const checkPermission = require("../../utilities/tokenmanager/checkpermission");
 
 router.post("/faq/add", checkPermission, SettingsController.add_faq);
-router.post("/faq/list", checkPermission, SettingsController.list_faq);
+router.post("/faq/list", SettingsController.list_faq);
 router.post(
     "/terms_conditions/add",
     checkPermission,
@@ -11,7 +11,7 @@ router.post(
 );
 router.post(
     "/terms_conditions/list",
-    checkPermission,
+
     SettingsController.list_terms_conditions
 );
 router.post(
@@ -21,7 +21,7 @@ router.post(
 );
 router.post(
     "/privacy_policy/list",
-    checkPermission,
+
     SettingsController.list_privacy_policy
 );
 

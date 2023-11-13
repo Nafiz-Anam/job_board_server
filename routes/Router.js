@@ -12,6 +12,7 @@ const ReviewRouter = require("./ReviewRoute/ReviewRoute");
 const AdminRouter = require("./AdminRoute/AdminRoute");
 const ServiceRouter = require("./ServiceRoute/ServiceRoute");
 const SettingsRouter = require("./SettingsRoute/SettingsRoute");
+const TagRouter = require("./TagRoute/TagRoute");
 
 router.use("/user", UserRouter);
 router.use("/admin", AdminRouter);
@@ -25,6 +26,7 @@ router.use("/deposit", DepositRouter);
 router.use("/withdraw", WithdrawRouter);
 router.use("/payment", PaymentRouter);
 router.use("/review", ReviewRouter);
+router.use("/tag", TagRouter);
 router.use("/settings", SettingsRouter);
 
 module.exports = router;
