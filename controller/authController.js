@@ -77,8 +77,17 @@ var AuthController = {
     },
 
     send_otp: async (req, res) => {
-        const { mobile_code, mobile_no } = req.body;
+        const { mobile_code, mobile_no, referral_code } = req.body;
         try {
+            let found = await helpers.get_data_list("*", "users", {
+                referral_code,
+            });
+            if(found.length == 0){
+                return res.status(500).json({
+                    status: false,
+                    message: "Invalid referral code!",
+                });
+            }
             let otp = await helpers.generateOtp(6);
             const title = "Mr. Xpert";
             const mobile_number = `${mobile_code}${mobile_no}`;
@@ -90,8 +99,8 @@ var AuthController = {
                 otp +
                 ". Do not share it with anyone.";
 
-            console.log("mobile_number", mobile_number);
-            console.log("welcomeMessage", welcomeMessage);
+            // console.log("mobile_number", mobile_number);
+            // console.log("welcomeMessage", welcomeMessage);
 
             await otpSender(mobile_number, welcomeMessage)
                 .then(async (data) => {
@@ -1044,6 +1053,7 @@ var AuthController = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
                     profile_img: val?.profile_img ? val?.profile_img : "",
                     referral_code: val?.referral_code ? val?.referral_code : "",
+                    referred_by: val?.referred_by ? val?.referred_by : "",
                     user_no: val?.user_no ? val?.user_no : "",
                     full_name: val?.full_name ? val?.full_name : "",
                     email: val?.email ? val?.email : "",
@@ -1220,6 +1230,7 @@ var AuthController = {
                             user_no: val?.user_no ? val?.user_no : "",
                             mobile_no: val?.mobile_no ? val?.mobile_no : "",
                             email: val?.email ? val?.email : "",
+                            referred_by: val?.referred_by ? val?.referred_by : "",
                             referral_code: val?.referral_code
                                 ? val?.referral_code
                                 : "",
