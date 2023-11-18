@@ -118,6 +118,7 @@ const authValidation = {
                     "Mobile number must be at least 10 characters long",
                 "string.empty": "Mobile number cannot be empty",
             }),
+            referral_code: Joi.string().optional(),
         });
 
         try {
