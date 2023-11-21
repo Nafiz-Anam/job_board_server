@@ -170,7 +170,15 @@ var helpers = {
         qb.release();
         return response;
     },
-
+    common_updateDetails: async (condition, data, table) => {
+        let qb = await pool.get_connection();
+        let response = await qb
+            .set(data)
+            .where(condition)
+            .update(config.table_prefix + table);
+        qb.release();
+        return response;
+    },
     make_sequential_no: async (pre) => {
         let qb = await pool.get_connection();
         let response = "";
