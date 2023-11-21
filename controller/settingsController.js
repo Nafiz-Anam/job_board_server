@@ -154,9 +154,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
-            let id = enc_dec.decrypt(req.bodyString("id"));
+            let id;
 
             if (req.bodyString("id")) {
+                id = enc_dec.decrypt(req.bodyString("id"));
                 data.id = id;
 
                 await helpers
@@ -262,9 +263,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
-            let id = enc_dec.decrypt(req.bodyString("id"));
+            let id;
 
             if (req.bodyString("id")) {
+                id = enc_dec.decrypt(req.bodyString("id"));
                 data.id = id;
 
                 await helpers
@@ -357,9 +359,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
-            let id = enc_dec.decrypt(req.bodyString("id"));
+            let id;
 
             if (req.bodyString("id")) {
+                id = enc_dec.decrypt(req.bodyString("id"));
                 data.id = id;
 
                 await helpers
@@ -452,9 +455,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
-            let id = enc_dec.decrypt(req.bodyString("id"));
+            let id;
 
             if (req.bodyString("id")) {
+                id = enc_dec.decrypt(req.bodyString("id"));
                 data.id = id;
 
                 await helpers
