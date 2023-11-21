@@ -1,5 +1,4 @@
 require("dotenv").config();
-const UserModel = require("../model/userModel");
 const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
 
@@ -38,14 +37,18 @@ var SettingsController = {
     list_faq: async (req, res) => {
         try {
             let condition = {};
+            let search = {};
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");
             }
             if (req.bodyString("deleted")) {
                 condition.deleted = req.bodyString("deleted");
             }
+            if (req.bodyString("search")) {
+                search.question = req.bodyString("search");
+            }
             helpers
-                .common_select_list(condition, {}, {}, "faqs", {})
+                .common_select_list(condition, {}, {}, "faqs", search)
                 .then(async (result) => {
                     let response = [];
                     for (val of result) {
@@ -149,7 +152,7 @@ var SettingsController = {
         try {
             let data = {
                 content: req.bodyString("content"),
-                status: req.bodyString("status"),
+                status: 0,
             };
 
             if (req.bodyString("id")) {
@@ -256,7 +259,7 @@ var SettingsController = {
         try {
             let data = {
                 content: req.bodyString("content"),
-                status: req.bodyString("status"),
+                status: 0,
             };
 
             if (req.bodyString("id")) {
@@ -350,7 +353,7 @@ var SettingsController = {
         try {
             let data = {
                 content: req.bodyString("content"),
-                status: req.bodyString("status"),
+                status: 0,
             };
 
             if (req.bodyString("id")) {
@@ -444,7 +447,7 @@ var SettingsController = {
         try {
             let data = {
                 content: req.bodyString("content"),
-                status: req.bodyString("status"),
+                status: 0,
             };
 
             if (req.bodyString("id")) {

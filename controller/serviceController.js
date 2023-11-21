@@ -225,6 +225,7 @@ var ServiceController = {
             }
 
             let condition = {};
+            let search = {};
             if (req.bodyString("client_id")) {
                 condition.client_id = enc_dec.decrypt(
                     req.bodyString("client_id")
@@ -262,13 +263,17 @@ var ServiceController = {
                 condition.rescheduled = req.bodyString("rescheduled");
             }
 
+            if (req.bodyString("search")) {
+                search.title = req.bodyString("search");
+            }
+
             const totalCount = await ServiceModel.booking_get_count(
                 condition,
-                {}
+                {},
+                search
             );
-            // console.log(totalCount);
 
-            await ServiceModel.booking_select_list(condition, {}, limit)
+            await ServiceModel.booking_select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     console.log(result);
                     let response = [];
@@ -355,7 +360,8 @@ var ServiceController = {
                             expert_id: val?.expert_id
                                 ? enc_dec.encrypt(val?.expert_id)
                                 : "",
-                            payment_status: "",
+                            payment_status:
+                                val?.payment_status == 1 ? "paid" : "unpaid",
                             req_status:
                                 val?.req_status == 1
                                     ? "pending"
@@ -471,6 +477,17 @@ var ServiceController = {
             await ServiceModel.select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     let response = [];
+                    let user_name = await helpers.get_data_list(
+                        "full_name",
+                        "users",
+                        { id: val?.posted_by }
+                    );
+                    let ctg_name = await helpers.get_data_list(
+                        "name",
+                        "categories",
+                        { id: val?.category_id }
+                    );
+
                     for (let val of result) {
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
@@ -478,6 +495,10 @@ var ServiceController = {
                             posted_by: val?.posted_by
                                 ? enc_dec.encrypt(val?.posted_by)
                                 : "",
+                            expert_name:
+                                user_name.length > 0
+                                    ? user_name[0]?.full_name
+                                    : "",
                             req_status:
                                 val?.req_status == 1
                                     ? "pending"
@@ -492,6 +513,8 @@ var ServiceController = {
                             category_id: val?.category_id
                                 ? enc_dec.encrypt(val?.category_id)
                                 : "",
+                            category_name:
+                                ctg_name.length > 0 ? ctg_name[0].name : "",
                             sub_category_id: val?.sub_category_id
                                 ? enc_dec.encrypt(val?.sub_category_id)
                                 : "",

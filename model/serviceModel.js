@@ -144,7 +144,7 @@ var dbModel = {
         qb.release();
         return response;
     },
-    booking_select_list: async (condition, date_condition, limit) => {
+    booking_select_list: async (condition, date_condition, limit, search) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
 
@@ -169,6 +169,16 @@ var dbModel = {
                 final_cond = final_cond + date_condition_str;
             } else {
                 final_cond = final_cond + " and " + date_condition_str;
+            }
+        }
+
+        if (Object.keys(search).length) {
+            let date_like_search_str =
+                await helpers.get_conditional_or_like_string(search);
+            if (final_cond == " where ") {
+                final_cond = final_cond + date_like_search_str;
+            } else {
+                final_cond = final_cond + " and " + date_like_search_str;
             }
         }
 
@@ -266,7 +276,7 @@ var dbModel = {
         qb.release();
         return response[0]?.total;
     },
-    booking_get_count: async (condition, date_condition) => {
+    booking_get_count: async (condition, date_condition, search) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
 
@@ -291,6 +301,16 @@ var dbModel = {
                 final_cond = final_cond + date_condition_str;
             } else {
                 final_cond = final_cond + " and " + date_condition_str;
+            }
+        }
+
+        if (Object.keys(search).length) {
+            let date_like_search_str =
+                await helpers.get_conditional_or_like_string(search);
+            if (final_cond == " where ") {
+                final_cond = final_cond + date_like_search_str;
+            } else {
+                final_cond = final_cond + " and " + date_like_search_str;
             }
         }
 

@@ -125,12 +125,26 @@ var JobController = {
             }
 
             let condition = {};
-            let search = {}
+            let search = {};
+            let user_data = {};
 
             if (req.bodyString("search")) {
                 search.title = req.bodyString("search");
                 search.description = req.bodyString("search");
                 search.job_no = req.bodyString("search");
+
+                user_data.full_name = req.bodyString("search");
+                user_data.email = req.bodyString("search");
+                user_data.mobile_no = req.bodyString("search");
+
+                let posted_by = await helpers.get_like_data(
+                    user_data,
+                    "users",
+                );
+
+                if (posted_by.length > 0) {
+                    search.posted_by = posted_by[0]?.id;
+                }
             }
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");

@@ -83,6 +83,35 @@ var helpers = {
         qb.release();
         return response;
     },
+    get_like_data: async (search, dbtable) => {
+        let qb = await pool.get_connection();
+        let final_cond = " where ";
+        if (Object.keys(search).length) {
+            let like_search_str = await helpers.get_conditional_or_like_string(
+                search
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + like_search_str;
+            } else {
+                final_cond = final_cond + " and " + like_search_str;
+            }
+        }
+
+        if (final_cond == " where ") {
+            final_cond = "";
+        }
+
+        let query =
+            "select * from " +
+            config.table_prefix +
+            dbtable +
+            final_cond +
+            " ORDER BY id DESC";
+        console.log(query);
+        let response = await qb.query(query);
+        qb.release();
+        return response;
+    },
     calculateAge: async (dateOfBirth) => {
         const dob = new Date(dateOfBirth);
         const now = new Date();
