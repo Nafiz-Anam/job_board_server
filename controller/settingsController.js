@@ -154,9 +154,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
+            let id = enc_dec.decrypt(req.bodyString("id"));
 
             if (req.bodyString("id")) {
-                data.id = enc_dec.decrypt(req.bodyString("id"));
+                data.id = id;
 
                 await helpers
                     .common_updateDetails(
@@ -261,9 +262,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
+            let id = enc_dec.decrypt(req.bodyString("id"));
 
             if (req.bodyString("id")) {
-                data.id = enc_dec.decrypt(req.bodyString("id"));
+                data.id = id;
 
                 await helpers
                     .common_updateDetails({ id: id }, data, "privacy_policy")
@@ -355,9 +357,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
+            let id = enc_dec.decrypt(req.bodyString("id"));
 
             if (req.bodyString("id")) {
-                data.id = enc_dec.decrypt(req.bodyString("id"));
+                data.id = id;
 
                 await helpers
                     .common_updateDetails({ id: id }, data, "about_us")
@@ -449,9 +452,10 @@ var SettingsController = {
                 content: req.bodyString("content"),
                 status: 0,
             };
+            let id = enc_dec.decrypt(req.bodyString("id"));
 
             if (req.bodyString("id")) {
-                data.id = enc_dec.decrypt(req.bodyString("id"));
+                data.id = id;
 
                 await helpers
                     .common_updateDetails({ id: id }, data, "refund_policy")
