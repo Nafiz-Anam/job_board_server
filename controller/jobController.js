@@ -125,7 +125,13 @@ var JobController = {
             }
 
             let condition = {};
+            let search = {}
 
+            if (req.bodyString("search")) {
+                search.title = req.bodyString("search");
+                search.description = req.bodyString("search");
+                search.job_no = req.bodyString("search");
+            }
             if (req.bodyString("status")) {
                 condition.status = req.bodyString("status");
             }
@@ -135,12 +141,12 @@ var JobController = {
             if (req.bodyString("req_status")) {
                 condition.req_status = req.bodyString("req_status");
             }
-            if (req.bodyString("experience")) {
-                condition.experience = req.bodyString("experience");
-            }
-            if (req.bodyString("payment_type")) {
-                condition.payment_type = req.bodyString("payment_type");
-            }
+            // if (req.bodyString("experience")) {
+            //     condition.experience = req.bodyString("experience");
+            // }
+            // if (req.bodyString("payment_type")) {
+            //     condition.payment_type = req.bodyString("payment_type");
+            // }
             if (req.bodyString("posted_by")) {
                 condition.posted_by = enc_dec.decrypt(
                     req.bodyString("posted_by")
@@ -157,9 +163,9 @@ var JobController = {
                 );
             }
 
-            const totalCount = await JobModel.get_count(condition, {});
+            const totalCount = await JobModel.get_count(condition, {}, search);
 
-            await JobModel.select_list(condition, {}, limit)
+            await JobModel.select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     console.log(result);
 
@@ -188,6 +194,7 @@ var JobController = {
                                     ? "rejected"
                                     : "accepted",
                             status: val?.status == 0 ? "active" : "inactive",
+                            job_no: val?.job_no ? val?.job_no : "",
                             title: val?.title ? val?.title : "",
                             description: val?.description
                                 ? val?.description
@@ -211,20 +218,20 @@ var JobController = {
                                 ? enc_dec.encrypt(val?.sub_category_id)
                                 : "",
                             tags: val?.tags ? val?.tags : "",
-                            skills: val?.skills ? val?.skills : "",
-                            experience: val?.experience ? val?.experience : "",
-                            payment_type: val?.payment_type
-                                ? val?.payment_type
-                                : "",
+                            // skills: val?.skills ? val?.skills : "",
+                            // experience: val?.experience ? val?.experience : "",
+                            // payment_type: val?.payment_type
+                            //     ? val?.payment_type
+                            //     : "",
                             project_budget: val?.project_budget
                                 ? val?.project_budget
                                 : 0,
-                            min_pay_amount: val?.in_pay_amount
-                                ? val?.in_pay_amount
-                                : 0,
-                            max_pay_amount: val?.max_pay_amount
-                                ? val?.max_pay_amount
-                                : 0,
+                            // min_pay_amount: val?.in_pay_amount
+                            //     ? val?.in_pay_amount
+                            //     : 0,
+                            // max_pay_amount: val?.max_pay_amount
+                            //     ? val?.max_pay_amount
+                            //     : 0,
                             attach_img: val?.attach_img ? val?.attach_img : "",
                             attach_file: val?.attach_file
                                 ? val?.attach_file
@@ -354,6 +361,43 @@ var JobController = {
         }
     },
 
+    apply_v2: async (req, res) => {
+        try {
+            let job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            let client_id = await helpers.get_data_list("posted_by", "jobs", {
+                id: job_id,
+            });
+
+            let data = {
+                date: req.bodyString("date"),
+                time: req.bodyString("time"),
+                expert_id: req.user?.id,
+                client_id: client_id.length ? client_id[0].posted_by : "",
+                job_id: job_id,
+            };
+            await JobModel.apply(data)
+                .then((result) => {
+                    res.status(200).json({
+                        status: true,
+                        message: "Job applied successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        message: "Unable to apply for job. Try again!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Server side error! Try again.",
+            });
+        }
+    },
+
     apply: async (req, res) => {
         try {
             let files = req.all_files?.project_img;
@@ -462,19 +506,21 @@ var JobController = {
                                 : "",
                             req_status:
                                 val?.req_status == 1 ? "pending" : "accepted",
-                            is_hourly: val?.is_hourly == 0 ? false : true,
-                            cover_letter: val?.cover_letter
-                                ? val?.cover_letter
-                                : "",
-                            fix_budget: val?.fix_budget ? val?.fix_budget : 0,
-                            from_rate: val?.from_rate ? val?.from_rate : 0,
-                            to_rate: val?.to_rate ? val?.to_rate : 0,
-                            project_img: val?.project_img
-                                ? val?.project_img
-                                : "",
-                            attach_file: val?.attach_file
-                                ? val?.attach_file
-                                : "",
+                            date: val?.date ? val?.date : "",
+                            time: val?.time ? val?.time : "",
+                            // is_hourly: val?.is_hourly == 0 ? false : true,
+                            // cover_letter: val?.cover_letter
+                            //     ? val?.cover_letter
+                            //     : "",
+                            // fix_budget: val?.fix_budget ? val?.fix_budget : 0,
+                            // from_rate: val?.from_rate ? val?.from_rate : 0,
+                            // to_rate: val?.to_rate ? val?.to_rate : 0,
+                            // project_img: val?.project_img
+                            //     ? val?.project_img
+                            //     : "",
+                            // attach_file: val?.attach_file
+                            //     ? val?.attach_file
+                            //     : "",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };

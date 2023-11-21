@@ -427,6 +427,12 @@ var ServiceController = {
             }
 
             let condition = {};
+            let search = {};
+            if (req.bodyString("search")) {
+                search.service_no = req.bodyString("search");
+                search.title = req.bodyString("search");
+                search.description = req.bodyString("search");
+            }
             if (req.user?.type === "expert") {
                 condition.posted_by = req.user?.id;
             }
@@ -455,10 +461,14 @@ var ServiceController = {
                 );
             }
 
-            const totalCount = await ServiceModel.get_count(condition, {});
+            const totalCount = await ServiceModel.get_count(
+                condition,
+                {},
+                search
+            );
             // console.log(totalCount);
 
-            await ServiceModel.select_list(condition, {}, limit)
+            await ServiceModel.select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     let response = [];
                     for (let val of result) {
