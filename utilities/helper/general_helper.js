@@ -191,6 +191,59 @@ var helpers = {
         const confirmationCode = String(Math.floor(x + Math.random() * y));
         return confirmationCode;
     },
+    common_count: async (condition, date_condition, search, dbtable) => {
+        let qb = await pool.get_connection();
+        let final_cond = " where ";
+
+        if (Object.keys(condition).length) {
+            let condition_str = await helpers.get_and_conditional_string(
+                condition
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + condition_str;
+            } else {
+                final_cond = final_cond + " and " + condition_str;
+            }
+        }
+
+        if (Object.keys(date_condition).length) {
+            let date_condition_str = await helpers.get_date_between_condition(
+                date_condition.from_date,
+                date_condition.to_date,
+                "created_at"
+            );
+            if (final_cond == " where ") {
+                final_cond = final_cond + date_condition_str;
+            } else {
+                final_cond = final_cond + " and " + date_condition_str;
+            }
+        }
+
+        if (Object.keys(search).length) {
+            let date_like_search_str =
+                await helpers.get_conditional_or_like_string(search);
+            if (final_cond == " where ") {
+                final_cond = final_cond + date_like_search_str;
+            } else {
+                final_cond = final_cond + " and " + date_like_search_str;
+            }
+        }
+
+        if (final_cond == " where ") {
+            final_cond = "";
+        }
+
+        let query =
+            "select count(*) as total from " +
+            config.table_prefix +
+            dbtable +
+            final_cond;
+
+        console.log("query => ", query);
+        let response = await qb.query(query);
+        qb.release();
+        return response[0]?.total;
+    },
     common_add: async (data, table) => {
         let qb = await pool.get_connection();
         let response = await qb

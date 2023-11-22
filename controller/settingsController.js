@@ -1,6 +1,8 @@
 require("dotenv").config();
 const enc_dec = require("../utilities/decryptor/decryptor");
 const helpers = require("../utilities/helper/general_helper");
+const moment = require("moment");
+
 
 var SettingsController = {
     add_faq: async (req, res) => {
@@ -47,6 +49,8 @@ var SettingsController = {
             if (req.bodyString("search")) {
                 search.question = req.bodyString("search");
             }
+
+            let total = await helpers.common_count(condition, {}, search, "faqs");
             helpers
                 .common_select_list(condition, {}, {}, "faqs", search)
                 .then(async (result) => {
@@ -64,6 +68,7 @@ var SettingsController = {
                     res.status(200).json({
                         status: true,
                         data: response,
+                        total: total,
                         message: "Faqs fetched successfully!",
                     });
                 })
