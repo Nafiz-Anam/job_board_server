@@ -477,18 +477,19 @@ var ServiceController = {
             await ServiceModel.select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     let response = [];
-                    let user_name = await helpers.get_data_list(
-                        "full_name",
-                        "users",
-                        { id: val?.posted_by }
-                    );
-                    let ctg_name = await helpers.get_data_list(
-                        "name",
-                        "categories",
-                        { id: val?.category_id }
-                    );
 
                     for (let val of result) {
+                        let user_name = await helpers.get_data_list(
+                            "full_name",
+                            "users",
+                            { id: val?.posted_by }
+                        );
+                        let ctg_name = await helpers.get_data_list(
+                            "name",
+                            "categories",
+                            { id: val?.category_id }
+                        );
+
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             service_no: val?.service_no ? val?.service_no : "",

@@ -1495,13 +1495,15 @@ var AuthController = {
             const totalCount = await UserModel.get_count(
                 { user_id: id },
                 {},
-                "login_history"
+                "login_history",
+                {}
             );
             await UserModel.select_list(
                 { user_id: id },
                 {},
                 limit,
-                "login_history"
+                "login_history",
+                {}
             )
                 .then(async (result) => {
                     res.status(200).json({
