@@ -477,7 +477,8 @@ var AuthController = {
             if (check_mobile_exist || check_email_exist) {
                 return res.status(200).json({
                     status: true,
-                    error: check_mobile_exist || check_email_exist,
+                    // error: check_mobile_exist || check_email_exist,
+                    error: "",
                 });
             } else {
                 return res.status(500).json({
@@ -735,7 +736,7 @@ var AuthController = {
                 user_data.email = result.email;
             }
             if (result?.mobile_no) {
-                user_data.mobile_no = result.code + result.mobile_no;
+                user_data.mobile_no = result.mobile_code + result.mobile_no;
             }
 
             const table = "users";
