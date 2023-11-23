@@ -10,12 +10,6 @@ router.post(
     serviceUploader,
     ServiceController.create
 );
-// router.post(
-//     "/update",
-//     checkPermission,
-//     serviceUploader,
-//     ServiceController.update
-// );
 router.post("/list", checkPermission, ServiceController.list);
 router.post("/details", checkPermission, ServiceController.details);
 router.post(
@@ -27,6 +21,7 @@ router.post(
 router.post("/delete", checkPermission, ServiceController.delete);
 router.post("/book", checkPermission, ServiceController.booking);
 router.post("/bookings", ServiceController.booking_list);
+router.post("/booking/status", ServiceController.booking_status);
 router.post(
     "/booking/cancel",
     checkPermission,

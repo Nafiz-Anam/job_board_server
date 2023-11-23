@@ -153,64 +153,6 @@ var ServiceController = {
         }
     },
 
-    // update: async (req, res) => {
-    //     let id = enc_dec.decrypt(req.bodyString("job_id"));
-    //     try {
-    //         // let files = req.all_files.project_files;
-    //         // const filesWithStaticUrl = files.map(
-    //         //     (file) => STATIC_URL + "jobs/" + file
-    //         // );
-    //         // const filesStringified = JSON.stringify(filesWithStaticUrl);
-    //         const currentDatetime = moment();
-    //         let data = {
-    //             title: req.bodyString("title"),
-    //             updated_by: req.user.id,
-    //             description: req.bodyString("description"),
-    //             category_id: enc_dec.decrypt(req.bodyString("category_id")),
-    //             sub_category_id: enc_dec.decrypt(
-    //                 req.bodyString("sub_category_id")
-    //             ),
-    //             tags: req.bodyString("tags"),
-    //             skills: req.bodyString("skills"),
-    //             experience: req.bodyString("experience"),
-    //             payment_type: req.bodyString("payment_type"),
-    //             project_budget: req.bodyString("project_budget"),
-    //             min_pay_amount: req.bodyString("min_pay_amount"),
-    //             max_pay_amount: req.bodyString("max_pay_amount"),
-    //             attach_video: req.all_files?.attach_video
-    //                 ? req.all_files?.attach_video[0]
-    //                 : "",
-    //             attach_file: req.all_files?.attach_file
-    //                 ? req.all_files?.attach_file[0]
-    //                 : "",
-    //             attach_img: req.all_files?.attach_img
-    //                 ? req.all_files?.attach_img[0]
-    //                 : "",
-    //             updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
-    //         };
-    //         await ServiceModel.updateDetails({ id: id }, data)
-    //             .then((result) => {
-    //                 res.status(200).json({
-    //                     status: true,
-    //                     message: "Job post updated successfully!",
-    //                 });
-    //             })
-    //             .catch((err) => {
-    //                 console.log(err);
-    //                 res.status(500).json({
-    //                     status: false,
-    //                     message: "Unable to update job details. Try again!",
-    //                 });
-    //             });
-    //     } catch (error) {
-    //         console.log(error);
-    //         res.status(500).json({
-    //             status: false,
-    //             message: "Server side error! Try again.",
-    //         });
-    //     }
-    // },
-
     booking_list: async (req, res) => {
         try {
             let limit = {
@@ -645,6 +587,38 @@ var ServiceController = {
                     res.status(200).json({
                         status: true,
                         message: "Service request updated successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        message: "Unable to update request. Try again!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Server side error! Try again.",
+            });
+        }
+    },
+
+    booking_status: async (req, res) => {
+        let id = enc_dec.decrypt(req.bodyString("booking_id"));
+        try {
+            const currentDatetime = moment();
+            let data = {
+                req_status: req.bodyString("req_status"),
+                work_status: req.bodyString("req_status") == 0 ? 1 : 2,
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+            await ServiceModel.updateDetailsV2({ id: id }, data, "bookings")
+                .then((result) => {
+                    res.status(200).json({
+                        status: true,
+                        message: "Booking request updated successfully!",
                     });
                 })
                 .catch((err) => {
