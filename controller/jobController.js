@@ -577,7 +577,7 @@ var JobController = {
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
 
-            await JobModel.updateDetails({ id: applied_id }, update_data);
+            await JobModel.updateDetails2({ id: applied_id }, update_data);
 
             return res.status(200).json({
                 status: true,

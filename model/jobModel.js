@@ -358,6 +358,12 @@ var dbModel = {
         qb.release();
         return response;
     },
+    updateDetails2: async (condition, data) => {
+        let qb = await pool.get_connection();
+        let response = await qb.set(data).where(condition).update(dbtable2);
+        qb.release();
+        return response;
+    },
     updateProfile: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb
