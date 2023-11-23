@@ -1155,6 +1155,9 @@ var AuthController = {
                     { id: val?.sub_category_id }
                 );
                 let age = await helpers.calculateAge(val?.birth_date);
+                let review_count = await helpers.common_count({expert_id: val?.id}, {}, {}, "reviews")
+                let rating = await helpers.get_avg_rating(val?.id)
+
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
                     profile_img: val?.profile_img ? val?.profile_img : "",
@@ -1198,6 +1201,8 @@ var AuthController = {
                     sub_category_name: sub_category_name.length
                         ? sub_category_name[0].name
                         : "",
+                    rating_count: review_count,
+                    rating: rating[0]?.average_rating,
                 };
             }
 

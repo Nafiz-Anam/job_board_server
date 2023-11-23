@@ -326,7 +326,7 @@ var dbModel = {
             final_cond = "";
         }
 
-        let query = "select count(*) as total from " + dbtable + final_cond;
+        let query = "select count(*) as total from " + dbtable2 + final_cond;
 
         console.log("query => ", query);
         let response = await qb.query(query);
