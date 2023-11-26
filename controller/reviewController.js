@@ -7,8 +7,8 @@ var ReviewController = {
     add_review: async (req, res) => {
         try {
             let review_data = {
-                client_id: req.user.id,
-                expert_id: enc_dec.decrypt(req.bodyString("expert_id")),
+                review_from: req.user.id,
+                review_to: enc_dec.decrypt(req.bodyString("review_to")),
                 service_id: enc_dec.decrypt(req.bodyString("service_id")),
                 job_id: enc_dec.decrypt(req.bodyString("job_id")),
                 rating: req.bodyString("rating"),
@@ -51,18 +51,46 @@ var ReviewController = {
                 limit.start = (start - 1) * perpage;
             }
 
-            UserModel.select_review_list(limit)
+            let condition = {};
+
+            if (req.bodyString("job_id")) {
+                condition.job_id = enc_dec.decrypt(req.bodyString("job_id"));
+            }
+            if (req.bodyString("service_id")) {
+                condition.service_id = enc_dec.decrypt(
+                    req.bodyString("service_id")
+                );
+            }
+            if (req.bodyString("review_from")) {
+                condition.review_from = enc_dec.decrypt(
+                    req.bodyString("review_from")
+                );
+            }
+            if (req.bodyString("review_to")) {
+                condition.review_to = enc_dec.decrypt(
+                    req.bodyString("review_to")
+                );
+            }
+
+            await UserModel.select_list(condition, {}, limit, "reviews", {})
                 .then(async (result) => {
                     let response = [];
                     for (val of result) {
                         temp = {
                             id: val?.id ? await enc_dec.encrypt(val?.id) : "",
-                            user_id: val?.user_id
-                                ? await enc_dec.encrypt(val?.user_id)
+                            job_id: val?.job_id
+                                ? await enc_dec.encrypt(val?.job_id)
                                 : "",
-                            start_count: val?.start_count
-                                ? val?.start_count
-                                : 0,
+                            service_id: val?.service_id
+                                ? await enc_dec.encrypt(val?.service_id)
+                                : "",
+                            review_from: val?.review_from
+                                ? await enc_dec.encrypt(val?.review_from)
+                                : "",
+                            review_to: val?.review_to
+                                ? await enc_dec.encrypt(val?.review_to)
+                                : "",
+                            rating: val?.rating ? val?.rating : 0,
                             review: val?.review ? val?.review : "",
                             created_at: val?.created_at ? val?.created_at : "",
                         };
