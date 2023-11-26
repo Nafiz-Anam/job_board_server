@@ -334,12 +334,12 @@ var dbModel = {
         return response[0]?.total;
     },
 
-    // selectSpecific: async (selection, condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb.select(selection).where(condition).get(dbtable);
-    //     qb.release();
-    //     return response;
-    // },
+    selectSpecific: async (selection, condition) => {
+        let qb = await pool.get_connection();
+        let response = await qb.select(selection).where(condition).get(dbtable2);
+        qb.release();
+        return response;
+    },
     // selectOne: async (selection, condition) => {
     //     let qb = await pool.get_connection();
     //     let response = await qb.select(selection).where(condition).get(dbtable);

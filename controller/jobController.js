@@ -137,10 +137,7 @@ var JobController = {
                 user_data.email = req.bodyString("search");
                 user_data.mobile_no = req.bodyString("search");
 
-                let posted_by = await helpers.get_like_data(
-                    user_data,
-                    "users",
-                );
+                let posted_by = await helpers.get_like_data(user_data, "users");
 
                 if (posted_by.length > 0) {
                     search.posted_by = posted_by[0]?.id;
@@ -545,6 +542,160 @@ var JobController = {
                         data: response,
                         message: "Jobs fetched successfully!",
                         total: totalCount,
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
+        }
+    },
+
+    applied_details: async (req, res) => {
+        try {
+            let condition = {};
+
+            if (req.bodyString("applied_id")) {
+                condition.id = enc_dec.decrypt(req.bodyString("applied_id"));
+            }
+
+            await JobModel.selectSpecific("*", condition)
+                .then(async (result) => {
+                    let response = [];
+
+                    for (let val of result) {
+                        let job_details = await helpers.get_data_list(
+                            "*",
+                            "jobs",
+                            {
+                                id: val?.job_id,
+                            }
+                        );
+                        let client_info = await helpers.get_data_list(
+                            "full_name,mobile_no,address",
+                            "users",
+                            { id: val?.client_id }
+                        );
+                        let expert_info = await helpers.get_data_list(
+                            "full_name,mobile_no,address",
+                            "users",
+                            { id: val?.expert_id }
+                        );
+                        let temp = {
+                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            expert_id: val?.expert_id
+                                ? enc_dec.encrypt(val?.expert_id)
+                                : "",
+                            client_id: val?.client_id
+                                ? enc_dec.encrypt(val?.client_id)
+                                : "",
+                            client_info:
+                                client_info.length > 0 ? client_info[0] : "",
+                            expert_info:
+                                expert_info.length > 0 ? expert_info[0] : "",
+                            job_details: {
+                                id: job_details[0].id
+                                    ? enc_dec.encrypt(job_details[0].id)
+                                    : "",
+                                job_no: job_details[0].job_no
+                                    ? job_details[0].job_no
+                                    : "",
+                                posted_by: job_details[0].posted_by
+                                    ? enc_dec.encrypt(job_details[0].posted_by)
+                                    : "",
+                                updated_by: job_details[0].updated_by
+                                    ? enc_dec.encrypt(job_details[0].updated_by)
+                                    : "",
+                                req_status:
+                                    job_details[0].req_status == 1
+                                        ? "pending"
+                                        : job_details[0].req_status == 0
+                                        ? "accepted"
+                                        : "rejected",
+                                status:
+                                    job_details[0].status == 0
+                                        ? "active"
+                                        : "inactive",
+                                title: job_details[0].title
+                                    ? job_details[0].title
+                                    : "",
+                                description: job_details[0].description
+                                    ? job_details[0].description
+                                    : "",
+                                category_id: job_details[0].category_id
+                                    ? enc_dec.encrypt(
+                                          job_details[0].category_id
+                                      )
+                                    : "",
+                                sub_category_id: job_details[0].sub_category_id
+                                    ? enc_dec.encrypt(
+                                          job_details[0].sub_category_id
+                                      )
+                                    : "",
+                                tags: job_details[0].tags
+                                    ? job_details[0].tags
+                                    : "",
+                                skills: job_details[0].skills
+                                    ? job_details[0].skills
+                                    : "",
+                                experience: job_details[0].experience
+                                    ? job_details[0].experience
+                                    : "",
+                                payment_type: job_details[0].payment_type
+                                    ? job_details[0].payment_type
+                                    : "",
+                                project_budget: job_details[0].project_budget
+                                    ? job_details[0].project_budget
+                                    : "",
+                                min_pay_amount: job_details[0].min_pay_amount
+                                    ? job_details[0].min_pay_amount
+                                    : "",
+                                max_pay_amount: job_details[0].max_pay_amount
+                                    ? job_details[0].max_pay_amount
+                                    : "",
+                                attach_img: job_details[0].attach_img
+                                    ? job_details[0].attach_img
+                                    : "",
+                                attach_file: job_details[0].attach_file
+                                    ? job_details[0].attach_file
+                                    : "",
+                                attach_video: job_details[0].attach_video
+                                    ? job_details[0].attach_video
+                                    : "",
+                                created_at: job_details[0].created_at
+                                    ? job_details[0].created_at
+                                    : "",
+                                updated_at: job_details[0].updated_at
+                                    ? job_details[0].updated_at
+                                    : "",
+                            },
+                            job_id: val?.job_id
+                                ? enc_dec.encrypt(val?.job_id)
+                                : "",
+                            req_status:
+                                val?.req_status == 1 ? "pending" : "accepted",
+                            date: val?.date ? val?.date : "",
+                            time: val?.time ? val?.time : "",
+                            created_at: val?.created_at ? val?.created_at : "",
+                            updated_at: val?.updated_at ? val?.updated_at : "",
+                        };
+                        response.push(temp);
+                    }
+                    res.status(200).json({
+                        status: true,
+                        data: response[0],
+                        message: "Jobs applied details fetched successfully!",
                     });
                 })
                 .catch((err) => {

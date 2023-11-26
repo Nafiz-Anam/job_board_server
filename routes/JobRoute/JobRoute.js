@@ -11,6 +11,7 @@ router.post("/details", checkPermission, JobController.details);
 router.post("/delete", checkPermission, JobController.delete);
 router.post("/apply", checkPermission, applyUploader, JobController.apply_v2);
 router.post("/applied/list", checkPermission, JobController.applied_list);
+router.post("/applied/details", checkPermission, JobController.applied_details);
 router.post("/request-status/update", JobController.update_request_status);
 
 module.exports = router;
