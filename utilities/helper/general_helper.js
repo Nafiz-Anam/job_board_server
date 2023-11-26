@@ -244,10 +244,10 @@ var helpers = {
         qb.release();
         return response[0]?.total;
     },
-    get_avg_rating: async (expert_id) => {
+    get_avg_rating: async (review_to) => {
         let qb = await pool.get_connection();
-        let query = `SELECT expert_id, COALESCE(AVG(rating), 0) AS average_rating FROM mx_reviews WHERE expert_id = ${expert_id} GROUP BY expert_id;`;
-        let response = await qb.query(query)
+        let query = `SELECT review_to, COALESCE(AVG(rating), 0) AS average_rating FROM mx_reviews WHERE review_to = ${review_to} GROUP BY review_to;`;
+        let response = await qb.query(query);
         qb.release();
         return response;
     },

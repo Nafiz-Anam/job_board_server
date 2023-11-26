@@ -379,13 +379,13 @@ var ServiceController = {
                             "services",
                             { id: val?.service_id }
                         );
-                        let client_name = await helpers.get_data_list(
-                            "full_name",
+                        let client_info = await helpers.get_data_list(
+                            "full_name,mobile_no,address",
                             "users",
                             { id: val?.client_id }
                         );
-                        let expert_name = await helpers.get_data_list(
-                            "full_name",
+                        let expert_info = await helpers.get_data_list(
+                            "full_name,mobile_no,address",
                             "users",
                             { id: val?.expert_id }
                         );
@@ -445,14 +445,10 @@ var ServiceController = {
                             client_id: val?.client_id
                                 ? enc_dec.encrypt(val?.client_id)
                                 : "",
-                            client_name:
-                                client_name.length > 0
-                                    ? client_name[0].full_name
-                                    : "",
-                            expert_name:
-                                expert_name.length > 0
-                                    ? expert_name[0].full_name
-                                    : "",
+                            client_info:
+                                client_info.length > 0 ? client_info[0] : "",
+                            expert_info:
+                                expert_name.length > 0 ? expert_info[0] : "",
                             expert_id: val?.expert_id
                                 ? enc_dec.encrypt(val?.expert_id)
                                 : "",

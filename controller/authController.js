@@ -1166,7 +1166,7 @@ var AuthController = {
                 );
                 let age = await helpers.calculateAge(val?.birth_date);
                 let review_count = await helpers.common_count(
-                    { expert_id: val?.id },
+                    { review_to: val?.id },
                     {},
                     {},
                     "reviews"
