@@ -786,6 +786,37 @@ var ServiceController = {
         }
     },
 
+    work_status: async (req, res) => {
+        let id = enc_dec.decrypt(req.bodyString("booking_id"));
+        try {
+            const currentDatetime = moment();
+            let data = {
+                work_status: req.bodyString("work_status"),
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+            await ServiceModel.updateDetailsV2({ id: id }, data, "bookings")
+                .then((result) => {
+                    res.status(200).json({
+                        status: true,
+                        message: "Booking status updated successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        message: "Unable to update request. Try again!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                message: "Server side error! Try again.",
+            });
+        }
+    },
+
     delete: async (req, res) => {
         try {
             let id = enc_dec.decrypt(req.bodyString("service_id"));
