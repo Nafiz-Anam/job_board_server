@@ -780,11 +780,20 @@ var AuthController = {
 
             const user_data = {
                 full_name: req.bodyString("full_name"),
+                about_me: req.bodyString("about_me") || "",
+                category_id: req.bodyString("category_id")
+                    ? enc_dec.decrypt(req.bodyString("category_id"))
+                    : null,
                 email: req.bodyString("email"),
                 mobile_no: req.bodyString("mobile_no"),
                 gender: req.bodyString("gender"),
                 birth_date: req.bodyString("birth_date"),
                 address: req.bodyString("address"),
+                house: req.bodyString("house") || "",
+                street: req.bodyString("street") || "",
+                zip: req.bodyString("zip") || "",
+                city: req.bodyString("city") || "",
+                state: req.bodyString("state") || "",
                 profile_img:
                     static_url + "profile/" + req.all_files?.profile_img,
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
@@ -1156,8 +1165,13 @@ var AuthController = {
                     { id: val?.sub_category_id }
                 );
                 let age = await helpers.calculateAge(val?.birth_date);
-                let review_count = await helpers.common_count({expert_id: val?.id}, {}, {}, "reviews")
-                let rating = await helpers.get_avg_rating(val?.id)
+                let review_count = await helpers.common_count(
+                    { expert_id: val?.id },
+                    {},
+                    {},
+                    "reviews"
+                );
+                let rating = await helpers.get_avg_rating(val?.id);
 
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
@@ -1166,6 +1180,7 @@ var AuthController = {
                     referred_by: val?.referred_by ? val?.referred_by : "",
                     user_no: val?.user_no ? val?.user_no : "",
                     full_name: val?.full_name ? val?.full_name : "",
+                    about_me: val?.about_me ? val?.about_me : "",
                     email: val?.email ? val?.email : "",
                     birth_date: val?.birth_date ? val?.birth_date : "",
                     age: age || "",
@@ -1203,7 +1218,8 @@ var AuthController = {
                         ? sub_category_name[0].name
                         : "",
                     rating_count: review_count,
-                    rating: rating[0]?.average_rating,
+                    rating: rating.length > 0 ? rating[0]?.average_rating : 0.0,
+                    completed_job_count: 0,
                 };
             }
 
