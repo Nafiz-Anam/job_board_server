@@ -448,7 +448,7 @@ var ServiceController = {
                             client_info:
                                 client_info.length > 0 ? client_info[0] : "",
                             expert_info:
-                                expert_name.length > 0 ? expert_info[0] : "",
+                                expert_info.length > 0 ? expert_info[0] : "",
                             expert_id: val?.expert_id
                                 ? enc_dec.encrypt(val?.expert_id)
                                 : "",
