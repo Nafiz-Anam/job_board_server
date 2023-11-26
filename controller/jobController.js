@@ -516,7 +516,17 @@ var JobController = {
                                 ? enc_dec.encrypt(val?.job_id)
                                 : "",
                             req_status:
-                                val?.req_status == 1 ? "pending" : "accepted",
+                                val?.req_status == 1
+                                    ? "pending"
+                                        ? val?.req_status == 0
+                                        : "accepted"
+                                    : "rejected",
+                            work_status:
+                                val?.work_status == 2
+                                    ? "not_started"
+                                    : val?.work_status == 1
+                                    ? "ongoing"
+                                    : "completed",
                             date: val?.date ? val?.date : "",
                             time: val?.time ? val?.time : "",
                             // is_hourly: val?.is_hourly == 0 ? false : true,
@@ -684,7 +694,17 @@ var JobController = {
                                 ? enc_dec.encrypt(val?.job_id)
                                 : "",
                             req_status:
-                                val?.req_status == 1 ? "pending" : "accepted",
+                                val?.req_status == 1
+                                    ? "pending"
+                                        ? val?.req_status == 0
+                                        : "accepted"
+                                    : "rejected",
+                            work_status:
+                                val?.work_status == 2
+                                    ? "not_started"
+                                    : val?.work_status == 1
+                                    ? "ongoing"
+                                    : "completed",
                             date: val?.date ? val?.date : "",
                             time: val?.time ? val?.time : "",
                             created_at: val?.created_at ? val?.created_at : "",
@@ -733,6 +753,34 @@ var JobController = {
             return res.status(200).json({
                 status: true,
                 message: "Request status changed successfully",
+            });
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error!",
+            });
+        }
+    },
+
+    work_request_status: async (req, res) => {
+        try {
+            const currentDatetime = moment();
+
+            const applied_id = enc_dec.decrypt(req.bodyString("applied_id"));
+            const work_status = req.bodyString("work_status");
+
+            const update_data = {
+                work_status,
+                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
+            };
+
+            await JobModel.updateDetails2({ id: applied_id }, update_data);
+
+            return res.status(200).json({
+                status: true,
+                message: "Work status changed successfully",
             });
         } catch (error) {
             console.error(error);
