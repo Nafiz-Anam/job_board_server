@@ -361,6 +361,159 @@ var ServiceController = {
         }
     },
 
+    booking_details: async (req, res) => {
+        try {
+            let condition = {};
+
+            if (req.bodyString("booking_id")) {
+                condition.id = enc_dec.decrypt(req.bodyString("booking_id"));
+            }
+
+            await ServiceModel.selectSpecific("*", condition)
+                .then(async (result) => {
+                    console.log(result);
+                    let response = [];
+                    for (let val of result) {
+                        let service_details = await helpers.get_data_list(
+                            "*",
+                            "services",
+                            { id: val?.service_id }
+                        );
+                        let client_name = await helpers.get_data_list(
+                            "full_name",
+                            "users",
+                            { id: val?.client_id }
+                        );
+                        let expert_name = await helpers.get_data_list(
+                            "full_name",
+                            "users",
+                            { id: val?.expert_id }
+                        );
+                        let temp = {
+                            id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                            service_id: val?.service_id
+                                ? enc_dec.encrypt(val?.service_id)
+                                : "",
+                            service_details: service_details && {
+                                posted_by: service_details[0]?.posted_by
+                                    ? enc_dec.encrypt(
+                                          service_details[0]?.posted_by
+                                      )
+                                    : "",
+                                title: service_details[0]?.title
+                                    ? service_details[0]?.title
+                                    : "",
+                                description: service_details[0]?.description
+                                    ? service_details[0]?.description
+                                    : "",
+                                category_id: service_details[0]?.category_id
+                                    ? enc_dec.encrypt(
+                                          service_details[0]?.category_id
+                                      )
+                                    : "",
+                                sub_category_id: service_details[0]
+                                    ?.sub_category_id
+                                    ? enc_dec.encrypt(
+                                          service_details[0]?.sub_category_id
+                                      )
+                                    : "",
+                                tags: service_details[0]?.tags
+                                    ? service_details[0]?.tags
+                                    : "",
+                                budget: service_details[0]?.budget
+                                    ? service_details[0]?.budget
+                                    : 0,
+                                cover_img: service_details[0]?.cover_img
+                                    ? service_details[0]?.cover_img
+                                    : "",
+                                attach_file: service_details[0]?.attach_file
+                                    ? service_details[0]?.attach_file
+                                    : "",
+                                cover_video: service_details[0]?.cover_video
+                                    ? service_details[0]?.cover_video
+                                    : "",
+                                service_img: service_details[0]?.service_img
+                                    ? service_details[0]?.service_img
+                                    : "",
+                                created_at: service_details[0]?.created_at
+                                    ? service_details[0]?.created_at
+                                    : "",
+                                updated_at: service_details[0]?.updated_at
+                                    ? service_details[0]?.updated_at
+                                    : "",
+                            },
+                            client_id: val?.client_id
+                                ? enc_dec.encrypt(val?.client_id)
+                                : "",
+                            client_name:
+                                client_name.length > 0
+                                    ? client_name[0].full_name
+                                    : "",
+                            expert_name:
+                                expert_name.length > 0
+                                    ? expert_name[0].full_name
+                                    : "",
+                            expert_id: val?.expert_id
+                                ? enc_dec.encrypt(val?.expert_id)
+                                : "",
+                            payment_status:
+                                val?.payment_status == 1 ? "paid" : "unpaid",
+                            req_status:
+                                val?.req_status == 1
+                                    ? "pending"
+                                    : val?.req_status == 2
+                                    ? "rejected"
+                                    : "accepted",
+                            work_status:
+                                val?.work_status == 2
+                                    ? "not_started"
+                                    : val?.work_status == 1
+                                    ? "ongoing"
+                                    : "completed",
+                            booking_date: val?.booking_date
+                                ? val?.booking_date
+                                : "",
+                            booking_time: val?.booking_time
+                                ? val?.booking_time
+                                : "",
+                            working_hours: val?.working_hours
+                                ? val?.working_hours
+                                : "",
+                            address: val?.address ? val?.address : "",
+                            location: val?.location ? val?.location : "",
+                            payment_method: val?.payment_method
+                                ? val?.payment_method
+                                : "",
+                            payment_id: val?.payment_id ? val?.payment_id : "",
+                            created_at: val?.created_at ? val?.created_at : "",
+                            updated_at: val?.updated_at ? val?.updated_at : "",
+                        };
+                        response.push(temp);
+                    }
+                    res.status(200).json({
+                        status: true,
+                        data: response[0],
+                        message: "Services details successfully!",
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).json({
+                        status: false,
+                        data: {},
+                        error: "Server side error!",
+                    });
+                });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                status: false,
+                data: {},
+                error: "Server side error!",
+            });
+        }
+    },
+
     list: async (req, res) => {
         try {
             let limit = {

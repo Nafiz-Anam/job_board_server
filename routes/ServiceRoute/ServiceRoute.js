@@ -21,6 +21,7 @@ router.post(
 router.post("/delete", checkPermission, ServiceController.delete);
 router.post("/book", checkPermission, ServiceController.booking);
 router.post("/bookings", ServiceController.booking_list);
+router.post("/booking/details", ServiceController.booking_details);
 router.post("/booking/status", ServiceController.booking_status);
 router.post(
     "/booking/cancel",
