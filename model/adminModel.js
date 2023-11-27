@@ -22,18 +22,6 @@ var dbModel = {
         return response;
     },
 
-    // select_limit: async (condition, limit) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb
-    //         .select("*")
-    //         .where(condition)
-    //         .order_by("designation", "asc")
-    //         .limit(limit.perpage, limit.start)
-    //         .get(dbtable);
-    //     qb.release();
-    //     return response;
-    // },
-
     select: async (condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(dbtable);
@@ -114,24 +102,6 @@ var dbModel = {
         return response[0]?.total;
     },
 
-    // selectSpecific: async (selection, condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb.select(selection).where(condition).get(dbtable);
-    //     qb.release();
-    //     return response;
-    // },
-    // selectOne: async (selection, condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb.select(selection).where(condition).get(dbtable);
-    //     qb.release();
-    //     return response[0];
-    // },
-    // selectUserDetails: async (condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb.select(selection).where(condition).get(dbtable);
-    //     qb.release();
-    //     return response[0];
-    // },
     updateDetails: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(dbtable);

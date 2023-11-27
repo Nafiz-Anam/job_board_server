@@ -18,36 +18,42 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     apply: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(dbtable2, data);
         qb.release();
         return response;
     },
+
     add_kyc: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(user_kyc, data);
         qb.release();
         return response;
     },
+
     add_send_money_req: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(send_money, data);
         qb.release();
         return response;
     },
+
     add_mobile_recharge_req: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(mobile_recharge, data);
         qb.release();
         return response;
     },
+
     addProfile: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(profile_table, data);
         qb.release();
         return response;
     },
+
     delete: async (condition) => {
         let qb = await pool.get_connection();
         let response = await qb.where(condition).delete(dbtable);
@@ -56,24 +62,13 @@ var dbModel = {
         return response;
     },
 
-    // select_limit: async (condition, limit) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb
-    //         .select("*")
-    //         .where(condition)
-    //         .order_by("designation", "asc")
-    //         .limit(limit.perpage, limit.start)
-    //         .get(dbtable);
-    //     qb.release();
-    //     return response;
-    // },
-
     select: async (condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(dbtable);
         qb.release();
         return response;
     },
+
     select_profile: async (condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(profile_table);
@@ -143,6 +138,7 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     applied_select_list: async (condition, date_condition, limit) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
@@ -336,34 +332,28 @@ var dbModel = {
 
     selectSpecific: async (selection, condition) => {
         let qb = await pool.get_connection();
-        let response = await qb.select(selection).where(condition).get(dbtable2);
+        let response = await qb
+            .select(selection)
+            .where(condition)
+            .get(dbtable2);
         qb.release();
         return response;
     },
-    // selectOne: async (selection, condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb.select(selection).where(condition).get(dbtable);
-    //     qb.release();
-    //     return response[0];
-    // },
-    // selectUserDetails: async (condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb.select(selection).where(condition).get(dbtable);
-    //     qb.release();
-    //     return response[0];
-    // },
+
     updateDetails: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(dbtable);
         qb.release();
         return response;
     },
+
     updateDetails2: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(dbtable2);
         qb.release();
         return response;
     },
+
     updateProfile: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb

@@ -15,12 +15,14 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     addProfile: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(profile_table, data);
         qb.release();
         return response;
     },
+
     delete: async (condition, table) => {
         let dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
@@ -30,18 +32,6 @@ var dbModel = {
         return response;
     },
 
-    // select_limit: async (condition, limit) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb
-    //         .select("*")
-    //         .where(condition)
-    //         .order_by("designation", "asc")
-    //         .limit(limit.perpage, limit.start)
-    //         .get(dbtable);
-    //     qb.release();
-    //     return response;
-    // },
-
     select: async (condition, table) => {
         let dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
@@ -50,6 +40,7 @@ var dbModel = {
         console.log(qb.last_query());
         return response;
     },
+
     select_profile: async (condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select("*").where(condition).get(profile_table);
@@ -199,18 +190,14 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     selectOne: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select(selection).where(condition).get(dbtable);
         qb.release();
         return response[0];
     },
-    // selectUserDetails: async (condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb.select(selection).where(condition).get(dbtable);
-    //     qb.release();
-    //     return response[0];
-    // },
+
     updateDetails: async (condition, data, table) => {
         const dbtable = config.table_prefix + table;
         let qb = await pool.get_connection();
@@ -219,6 +206,7 @@ var dbModel = {
         console.log(qb.last_query());
         return response;
     },
+
     updateProfile: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb

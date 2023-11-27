@@ -1,6 +1,5 @@
 const nodemailer = require("nodemailer");
 
-/** send mail from testing account */
 const email_service = async (toEmail, emailBody) => {
     let transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -13,10 +12,10 @@ const email_service = async (toEmail, emailBody) => {
     });
 
     let message = {
-        from: process.env.SMTP_EMAIL, // sender address
-        to: toEmail, // list of receivers
-        subject: "Forgot password OTP", // Subject line
-        text: emailBody, // plain text body
+        from: process.env.SMTP_EMAIL,
+        to: toEmail,
+        subject: "Forgot password OTP",
+        text: emailBody,
         // html: invoiceTemplate(emailData), // html body
     };
 

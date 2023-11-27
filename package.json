@@ -1,13 +1,14 @@
 {
-  "name": "sadhin_server",
+  "name": "mr_expert_apis",
   "version": "1.0.0",
-  "description": "Sadhin App APIs",
+  "description": "Mr. Xpert APIs",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Nafiz Anam",
   "license": "ISC",
   "dependencies": {
     "@joi/date": "^2.1.0",

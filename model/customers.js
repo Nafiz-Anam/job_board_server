@@ -18,6 +18,7 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     addMobileOTP: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(mobileotptable, data);
@@ -25,6 +26,7 @@ var dbModel = {
         console.log(qb.last_query());
         return response;
     },
+
     addDynamic: async (data, table_name) => {
         let db_table = config.table_prefix + table_name;
         let qb = await pool.get_connection();
@@ -38,18 +40,21 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     add_customer_tem: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(temtable, data);
         qb.release();
         return response;
     },
+
     add_customer: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb.returning("id").insert(dbtable, data);
         qb.release();
         return response;
     },
+
     select: async (limit, filter, user_type, id, table_name) => {
         console.log(`inside customers`);
         console.log("user_type", user_type);
@@ -247,6 +252,7 @@ var dbModel = {
         }
         return response;
     },
+
     selectTransaction: async (and_condition, date_condition, limit) => {
         let qb = await pool.get_connection();
         let response;
@@ -288,15 +294,7 @@ var dbModel = {
         console.log(query);
         return response;
     },
-    // selectTransaction: async (selection,condition) => {
-    //     let qb = await pool.get_connection();
-    //     let response = await qb
-    //         .select(selection)
-    //         .where(condition)
-    //         .get(transactiontable);
-    //     qb.release();
-    //     return response;
-    // },
+
     selectAnswer: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -307,6 +305,7 @@ var dbModel = {
 
         return response;
     },
+
     select1: async (condition_obj, filter, limit) => {
         let qb = await pool.get_connection();
         let search_text = await helpers.get_conditional_or_like_string(filter);
@@ -356,6 +355,7 @@ var dbModel = {
         }
         return response;
     },
+
     selectOtpDAta: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -365,6 +365,7 @@ var dbModel = {
         qb.release();
         return response[0];
     },
+
     selectMobileOtpData: async (condition) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
@@ -388,6 +389,7 @@ var dbModel = {
         qb.release();
         return response[0];
     },
+
     select_list2: async (condition) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
@@ -440,6 +442,7 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     selectCustomerDetails: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -450,6 +453,7 @@ var dbModel = {
         qb.release();
         return response[0];
     },
+
     selectActualCustomerDetails: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -460,6 +464,7 @@ var dbModel = {
         qb.release();
         return response[0];
     },
+
     selectCustomer: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select(selection).where(condition).get(dbtable);
@@ -467,6 +472,7 @@ var dbModel = {
         //   console.log(qb.last_query())
         return response[0];
     },
+
     selectOne: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb.select(selection).where(condition).get(dbtable);
@@ -474,12 +480,14 @@ var dbModel = {
         console.log("customer", qb.last_query());
         return response[0];
     },
+
     updateCustomerTempToken: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(temtable);
         qb.release();
         return response;
     },
+
     updateDetails: async (condition, data) => {
         let qb = await pool.get_connection();
         let response = await qb.set(data).where(condition).update(dbtable);
@@ -487,6 +495,7 @@ var dbModel = {
         console.log(qb.last_query());
         return response;
     },
+
     updateDynamic: async (condition, data, table) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -497,6 +506,7 @@ var dbModel = {
         console.log(qb.last_query());
         return response;
     },
+
     get_count1: async (condition) => {
         let qb = await pool.get_connection();
 
@@ -510,6 +520,7 @@ var dbModel = {
         qb.release();
         return response[0].count;
     },
+
     get_count_logs: async (id, condition_obj) => {
         let qb = await pool.get_connection();
         let condition = await helpers.get_conditional_string(condition_obj);
@@ -525,6 +536,7 @@ var dbModel = {
         qb.release();
         return response[0].count;
     },
+
     selectDynamic: async (selection, condition, table) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -535,6 +547,7 @@ var dbModel = {
         //console.log(qb.last_query())
         return response;
     },
+
     selectDynamicCard: async (selection, condition, table) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -545,6 +558,7 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     get_count: async (condition_obj) => {
         let qb = await pool.get_connection();
         let condition = await helpers.get_conditional_string(condition_obj);
@@ -558,6 +572,7 @@ var dbModel = {
         qb.release();
         return response[0].count;
     },
+
     add_token_check: async (data) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -576,6 +591,7 @@ var dbModel = {
         qb.release();
         return response;
     },
+
     get_customer_count: async (condition_obj) => {
         let qb = await pool.get_connection();
         let condition = await helpers.get_conditional_like_string(
@@ -597,6 +613,7 @@ var dbModel = {
         qb.release();
         return response[0].count;
     },
+
     get_merchant_customer_count: async (condition_obj, id, table_name) => {
         console.log(condition_obj, table_name, id);
         let qb = await pool.get_connection();
@@ -648,6 +665,7 @@ var dbModel = {
         qb.release();
         return response[0].count;
     },
+
     selectCustomerTransaction: async (selection, condition) => {
         let qb = await pool.get_connection();
         let response = await qb
@@ -658,6 +676,7 @@ var dbModel = {
         console.log("trans", qb.last_query());
         return response;
     },
+
     selectDynamicTransaction: async (and_condition, date_condition, table) => {
         const table_name = config.table_prefix + table;
         let qb = await pool.get_connection();
@@ -697,6 +716,7 @@ var dbModel = {
 
         return response;
     },
+
     get_dynamic_count: async (and_condition, date_condition, dbtable) => {
         dbtable = config.table_prefix + dbtable;
         let qb = await pool.get_connection();
@@ -736,6 +756,7 @@ var dbModel = {
 
         return response[0].count;
     },
+
     get_volume_dynamic: async (and_condition, date_condition, dbtable) => {
         dbtable = config.table_prefix + dbtable;
         let qb = await pool.get_connection();
