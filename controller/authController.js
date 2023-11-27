@@ -1138,7 +1138,7 @@ var AuthController = {
 
     profile_details: async (req, res) => {
         try {
-            const id = req.user?.id;
+            const id = req?.user?.id;
             let condition = {};
 
             if (req.bodyString("user_id")) {
@@ -1173,6 +1173,8 @@ var AuthController = {
                     "reviews"
                 );
                 let rating = await helpers.get_avg_rating(val?.id);
+                let total_complete_job_count =
+                    await helpers.total_complete_job_count(val?.id);
 
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
@@ -1220,7 +1222,8 @@ var AuthController = {
                         : "",
                     rating_count: review_count,
                     rating: rating.length > 0 ? rating[0]?.average_rating : 0.0,
-                    completed_job_count: 0,
+                    complete_jobs:
+                        total_complete_job_count[0].total_complete_jobs,
                 };
             }
 

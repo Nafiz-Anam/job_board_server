@@ -570,7 +570,7 @@ var ServiceController = {
 
                     for (let val of result) {
                         let expert_name = await helpers.get_data_list(
-                            "full_name",
+                            "full_name,profile_img",
                             "users",
                             { id: val?.posted_by }
                         );
@@ -585,7 +585,16 @@ var ServiceController = {
                             {},
                             "reviews"
                         );
+                        let expert_review_count = await helpers.common_count(
+                            { review_to: val?.posted_by },
+                            {},
+                            {},
+                            "reviews"
+                        );
                         let rating = await helpers.get_avg_rating(val?.id);
+                        let expert_rating = await helpers.get_avg_rating(
+                            val?.posted_by
+                        );
                         let total_complete_job_count =
                             await helpers.total_complete_job_count(
                                 val?.posted_by
@@ -597,10 +606,25 @@ var ServiceController = {
                             posted_by: val?.posted_by
                                 ? enc_dec.encrypt(val?.posted_by)
                                 : "",
-                            expert_name:
-                                expert_name.length > 0
-                                    ? expert_name[0]?.full_name
-                                    : "",
+                            expert_info: {
+                                expert_name:
+                                    expert_name.length > 0
+                                        ? expert_name[0]?.full_name
+                                        : "",
+                                expert_profile_img:
+                                    expert_name.length > 0
+                                        ? expert_name[0]?.profile_img
+                                        : "",
+                                complete_jobs:
+                                    total_complete_job_count[0]
+                                        .total_complete_jobs,
+                                expert_review_count: expert_review_count,
+                                expert_rating:
+                                    expert_rating.length > 0
+                                        ? expert_rating[0]?.average_rating
+                                        : 0.0,
+                            },
+
                             req_status:
                                 val?.req_status == 1
                                     ? "pending"
@@ -637,9 +661,6 @@ var ServiceController = {
                                 rating.length > 0
                                     ? rating[0]?.average_rating
                                     : 0.0,
-                            completed_job_count: 0,
-                            complete_jobs:
-                                total_complete_job_count[0].total_complete_jobs,
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };
