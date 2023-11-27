@@ -39,7 +39,7 @@ const fileFilter = (req, file, cb) => {
 
 let ProfileUploader = multer({
     storage: fileStorage,
-    limits: { fileSize: "5mb" },
+    limits: { fileSize: "20mb" },
     fileFilter: fileFilter,
 }).fields([
     {

@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const ServiceController = require("../../controller/serviceController");
 const serviceUploader = require("../../uploads/serviceUploader");
-const checkPermission = require("../../utilities/tokenmanager/checkpermission");
+const checkPermission = require("../../utilities/tokenmanager/checkPermission");
 const checkExpertToken = require("../../utilities/tokenmanager/checkExpertToken");
+const checkAdminToken = require("../../utilities/tokenmanager/checkAdminToken");
 
 router.post(
     "/create",
@@ -14,16 +15,28 @@ router.post("/list", checkPermission, ServiceController.list);
 router.post("/details", checkPermission, ServiceController.details);
 router.post(
     "/request/update",
-    checkPermission,
+    checkAdminToken,
     ServiceController.request_update
 );
 
 router.post("/delete", checkPermission, ServiceController.delete);
 router.post("/book", checkPermission, ServiceController.booking);
-router.post("/bookings", ServiceController.booking_list);
-router.post("/booking/details", ServiceController.booking_details);
-router.post("/booking/status", ServiceController.booking_status);
-router.post("/booking/work_status", ServiceController.work_status);
+router.post("/bookings", checkPermission, ServiceController.booking_list);
+router.post(
+    "/booking/details",
+    checkPermission,
+    ServiceController.booking_details
+);
+router.post(
+    "/booking/status",
+    checkPermission,
+    ServiceController.booking_status
+);
+router.post(
+    "/booking/work_status",
+    checkPermission,
+    ServiceController.work_status
+);
 router.post(
     "/booking/cancel",
     checkPermission,

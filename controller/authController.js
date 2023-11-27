@@ -65,7 +65,6 @@ var AuthController = {
 
                 await otpSender(mobile_number, welcomeMessage)
                     .then(async (data) => {
-                        // console.log("sms res =>", data);
                         const uuid = new SequenceUUID({
                             valid: true,
                             dashes: true,
@@ -79,10 +78,12 @@ var AuthController = {
                             token: token,
                             sms_id: data,
                         };
+
                         CustomerModel.addMobileOTP(ins_data)
                             .then(async (result) => {
                                 res.status(201).json({
                                     status: true,
+                                    otp: otp,
                                     token: token,
                                     type: check_user_exist[0].type,
                                     message:
@@ -137,7 +138,7 @@ var AuthController = {
     send_otp: async (req, res) => {
         const { mobile_code, mobile_no, referral_code } = req.body;
         try {
-            let found = await helpers.get_data_list("*", "users", {
+            let found = await helpers.get_data_list("id", "users", {
                 referral_code,
             });
             if (found.length == 0) {
@@ -157,12 +158,8 @@ var AuthController = {
                 otp +
                 ". Do not share it with anyone.";
 
-            // console.log("mobile_number", mobile_number);
-            // console.log("welcomeMessage", welcomeMessage);
-
             await otpSender(mobile_number, welcomeMessage)
                 .then(async (data) => {
-                    // console.log("sms res =>", data);
                     const uuid = new SequenceUUID({
                         valid: true,
                         dashes: true,
@@ -340,11 +337,15 @@ var AuthController = {
                     "otps"
                 );
 
+                // Save user login info
+                const loginInfo = await helpers.getUserLoginInfo(req);
+                await helpers.saveUserLoginInfo(user[0].id, loginInfo);
+
                 return res.status(200).json({
                     status: true,
                     token,
                     type: user[0].type,
-                    message: "OTP verified.",
+                    message: "OTP verified. User login successful.",
                 });
             } else {
                 return res.status(500).json({
@@ -1175,10 +1176,10 @@ var AuthController = {
 
                 profile_data = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
+                    user_no: val?.user_no ? val?.user_no : "",
                     profile_img: val?.profile_img ? val?.profile_img : "",
                     referral_code: val?.referral_code ? val?.referral_code : "",
                     referred_by: val?.referred_by ? val?.referred_by : "",
-                    user_no: val?.user_no ? val?.user_no : "",
                     full_name: val?.full_name ? val?.full_name : "",
                     about_me: val?.about_me ? val?.about_me : "",
                     email: val?.email ? val?.email : "",
@@ -1230,39 +1231,6 @@ var AuthController = {
             });
         } catch (error) {
             console.error(error);
-            res.status(500).json({
-                status: false,
-                message: "Internal server error!",
-            });
-        }
-    },
-
-    change_phone: async (req, res) => {
-        try {
-            const currentDatetime = moment();
-            let user_data = {
-                mobile_no: req.bodyString("new_phone"),
-                updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
-            };
-            console.log(user_data);
-
-            UserModel.updateProfile({ user_id: req.user.id }, user_data)
-                .then((result) => {
-                    console.log(result);
-                    res.status(200).json({
-                        status: true,
-                        message: "Phone updated successfully!",
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    res.status(500).json({
-                        status: false,
-                        message: "Internal server error!",
-                    });
-                });
-        } catch (error) {
-            console.log(error);
             res.status(500).json({
                 status: false,
                 message: "Internal server error!",
@@ -1326,12 +1294,9 @@ var AuthController = {
                 "users",
                 search
             );
-            console.log(totalCount);
 
             await UserModel.select_list(condition, {}, limit, "users", search)
                 .then(async (result) => {
-                    // console.log(result);
-
                     let response = [];
                     for (let val of result) {
                         let category_name = await helpers.get_data_list(
