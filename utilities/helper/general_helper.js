@@ -25,6 +25,29 @@ var helpers = {
         return randomPass;
     },
 
+    total_ref_count: async (referral_code) => {
+        let qb = await pool.get_connection();
+        let query = `SELECT COUNT(*) AS total_referrals
+                    FROM mx_users
+                    WHERE referred_by = '${referral_code};'`;
+        let response = await qb.query(query);
+        console.log(query);
+        qb.release();
+
+        return response;
+    },
+
+    total_complete_job_count: async (expert_id) => {
+        let qb = await pool.get_connection();
+        let query = `SELECT SUM(total_count) AS total_complete_jobs FROM ( SELECT COUNT(*) AS total_count FROM mx_applied_jobs WHERE work_status = 0 AND req_status = 0 AND deleted = 0 AND expert_id = ${expert_id} UNION ALL SELECT COUNT(*) AS total_count FROM mx_bookings WHERE work_status = 0 AND req_status = 0 AND cancelled = 0 AND deleted = 0 AND expert_id = ${expert_id} ) AS combined_counts;
+                    `;
+        let response = await qb.query(query);
+        console.log(query);
+        qb.release();
+
+        return response;
+    },
+
     get_user_id_by_email: async (email) => {
         let qb = await pool.get_connection();
         let response = await qb

@@ -1274,6 +1274,12 @@ var AuthController = {
             if (req.bodyString("state")) {
                 condition.state = req.bodyString("state");
             }
+            if (req.bodyString("referral_code")) {
+                condition.referral_code = req.bodyString("referral_code");
+            }
+            if (req.bodyString("referred_by")) {
+                condition.referred_by = req.bodyString("referred_by");
+            }
             if (req.bodyString("gender")) {
                 condition.gender = req.bodyString("gender");
             }
@@ -1308,6 +1314,9 @@ var AuthController = {
                             "name",
                             "sub_categories",
                             { id: val?.sub_category_id }
+                        );
+                        let total_referrals = await helpers.total_ref_count(
+                            val?.referral_code
                         );
                         let age = await helpers.calculateAge(val?.birth_date);
                         let temp = {
@@ -1366,6 +1375,8 @@ var AuthController = {
                             sub_category_name: sub_category_name.length
                                 ? sub_category_name[0].name
                                 : "",
+                            total_referrals: total_referrals[0].total_referrals,
+                            commission: val?.commission ? val?.commission : "",
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };
@@ -1393,6 +1404,26 @@ var AuthController = {
                 data: {},
                 error: "Server side error!",
             });
+        }
+    },
+
+    update_commission: async (req, res) => {
+        let id = enc_dec.decrypt(req.bodyString("user_id"));
+        let commission = req.bodyString("commission");
+
+        try {
+            let user_data = {
+                commission,
+                updated_at: moment().format("YYYY-MM-DD HH:mm"),
+            };
+            await UserModel.updateDetails({ id: id }, user_data, "users");
+            res.status(200).json({
+                status: true,
+                message: `User commission updated successfully!`,
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).send(error);
         }
     },
 

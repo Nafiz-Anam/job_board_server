@@ -563,14 +563,13 @@ var ServiceController = {
                 {},
                 search
             );
-            // console.log(totalCount);
 
             await ServiceModel.select_list(condition, {}, limit, search)
                 .then(async (result) => {
                     let response = [];
 
                     for (let val of result) {
-                        let user_name = await helpers.get_data_list(
+                        let expert_name = await helpers.get_data_list(
                             "full_name",
                             "users",
                             { id: val?.posted_by }
@@ -580,6 +579,17 @@ var ServiceController = {
                             "categories",
                             { id: val?.category_id }
                         );
+                        let review_count = await helpers.common_count(
+                            { review_to: val?.id },
+                            {},
+                            {},
+                            "reviews"
+                        );
+                        let rating = await helpers.get_avg_rating(val?.id);
+                        let total_complete_job_count =
+                            await helpers.total_complete_job_count(
+                                val?.posted_by
+                            );
 
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
@@ -588,8 +598,8 @@ var ServiceController = {
                                 ? enc_dec.encrypt(val?.posted_by)
                                 : "",
                             expert_name:
-                                user_name.length > 0
-                                    ? user_name[0]?.full_name
+                                expert_name.length > 0
+                                    ? expert_name[0]?.full_name
                                     : "",
                             req_status:
                                 val?.req_status == 1
@@ -622,6 +632,14 @@ var ServiceController = {
                             service_img: val?.service_img
                                 ? val?.service_img
                                 : "",
+                            rating_count: review_count,
+                            rating:
+                                rating.length > 0
+                                    ? rating[0]?.average_rating
+                                    : 0.0,
+                            completed_job_count: 0,
+                            complete_jobs:
+                                total_complete_job_count[0].total_complete_jobs,
                             created_at: val?.created_at ? val?.created_at : "",
                             updated_at: val?.updated_at ? val?.updated_at : "",
                         };

@@ -56,6 +56,11 @@ router.post(
 );
 router.post("/check-user", authController.check_user);
 router.post("/list", checkPermission, authController.list);
+router.post(
+    "/update_commission",
+    checkAdminToken,
+    authController.update_commission
+);
 router.post("/block-unblock", checkAdminToken, authController.block_unblock);
 router.post("/delete", checkAdminToken, authController.delete);
 
