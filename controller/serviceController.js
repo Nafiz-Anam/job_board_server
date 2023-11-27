@@ -16,8 +16,16 @@ var ServiceController = {
                     id: ser_id,
                 }
             );
+            let service_title = await helpers.get_data_list(
+                "title",
+                "services",
+                { id: ser_id }
+            );
+
             let data = {
                 service_id: ser_id,
+                service_title:
+                    service_title.length > 0 ? service_title[0].title : "",
                 client_id: req.user.id,
                 expert_id: expert_id.length ? expert_id[0].posted_by : "",
                 booking_date: req.bodyString("booking_date"),
@@ -206,7 +214,7 @@ var ServiceController = {
             }
 
             if (req.bodyString("search")) {
-                search.title = req.bodyString("search");
+                search.service_title = req.bodyString("search");
             }
 
             const totalCount = await ServiceModel.booking_get_count(
@@ -389,6 +397,17 @@ var ServiceController = {
                             "users",
                             { id: val?.expert_id }
                         );
+                        let category_name = await helpers.get_data_list(
+                            "name",
+                            "categories",
+                            { id: service_details[0]?.category_id }
+                        );
+                        let sub_category_name = await helpers.get_data_list(
+                            "name",
+                            "sub_categories",
+                            { id: service_details[0]?.sub_category_id }
+                        );
+
                         let temp = {
                             id: val?.id ? enc_dec.encrypt(val?.id) : "",
                             service_id: val?.service_id
@@ -411,11 +430,17 @@ var ServiceController = {
                                           service_details[0]?.category_id
                                       )
                                     : "",
+                                category_name: category_name.length
+                                    ? category_name[0].name
+                                    : "",
                                 sub_category_id: service_details[0]
                                     ?.sub_category_id
                                     ? enc_dec.encrypt(
                                           service_details[0]?.sub_category_id
                                       )
+                                    : "",
+                                sub_category_name: sub_category_name.length
+                                    ? sub_category_name[0].name
                                     : "",
                                 tags: service_details[0]?.tags
                                     ? service_details[0]?.tags
