@@ -14,12 +14,21 @@ const fileStorage = multer.diskStorage({
             "-" +
             Math.round(Math.random() * 1e9) +
             path.extname(file.originalname);
-        if (req.all_files) {
-            req.all_files[file.fieldname] = filename;
-        } else {
+
+        // Initialize the all_files object if it doesn't exist
+        if (!req.all_files) {
             req.all_files = {};
-            req.all_files[file.fieldname] = filename;
         }
+
+        // Check if the fieldname key is already present
+        if (req.all_files[file.fieldname]) {
+            // Push the filename into the existing array
+            req.all_files[file.fieldname].push(filename);
+        } else {
+            // Create a new array with the filename
+            req.all_files[file.fieldname] = [filename];
+        }
+
         cb(null, filename);
     },
 });

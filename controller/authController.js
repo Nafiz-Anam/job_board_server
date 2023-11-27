@@ -778,6 +778,7 @@ var AuthController = {
     update_profile_v2: async (req, res) => {
         try {
             const currentDatetime = moment();
+            console.log(req.all_files);
 
             const imageUrls = req?.all_files?.previous_work_image
                 .map((filename) => `${static_url}profile/${filename}`)
