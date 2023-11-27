@@ -39,12 +39,20 @@ const fileFilter = (req, file, cb) => {
 
 let ProfileUploader = multer({
     storage: fileStorage,
-    limits: { fileSize: "20mb" },
+    limits: { fileSize: "50mb" },
     fileFilter: fileFilter,
 }).fields([
     {
         name: "profile_img",
         maxCount: 1,
+    },
+    {
+        name: "cover_image",
+        maxCount: 1,
+    },
+    {
+        name: "previous_work_image",
+        maxCount: 6,
     },
 ]);
 

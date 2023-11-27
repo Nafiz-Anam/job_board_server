@@ -779,7 +779,16 @@ var AuthController = {
         try {
             const currentDatetime = moment();
 
+            const imageUrls = req?.all_files?.previous_work_image
+                .map((filename) => `${static_url}profile/${filename}`)
+                .join(",");
+
             const user_data = {
+                profile_img:
+                    static_url + "profile/" + req?.all_files?.profile_img || "",
+                cover_image:
+                    static_url + "profile/" + req?.all_files?.cover_image || "",
+                previous_work_image: imageUrls || "",
                 full_name: req.bodyString("full_name"),
                 about_me: req.bodyString("about_me") || "",
                 category_id: req.bodyString("category_id")
@@ -795,8 +804,6 @@ var AuthController = {
                 zip: req.bodyString("zip") || "",
                 city: req.bodyString("city") || "",
                 state: req.bodyString("state") || "",
-                profile_img:
-                    static_url + "profile/" + req.all_files?.profile_img,
                 updated_at: currentDatetime.format("YYYY-MM-DD HH:mm:ss"),
             };
 
@@ -1180,6 +1187,10 @@ var AuthController = {
                     id: val?.id ? enc_dec.encrypt(val?.id) : "",
                     user_no: val?.user_no ? val?.user_no : "",
                     profile_img: val?.profile_img ? val?.profile_img : "",
+                    previous_work_image: val?.previous_work_image
+                        ? val?.previous_work_image
+                        : "",
+                    cover_image: val?.cover_image ? val?.cover_image : "",
                     referral_code: val?.referral_code ? val?.referral_code : "",
                     referred_by: val?.referred_by ? val?.referred_by : "",
                     full_name: val?.full_name ? val?.full_name : "",
