@@ -18,13 +18,13 @@ app.use(express.json({ limit: "100mb" }));
 app.use(cookieParser());
 app.use(require("sanitize").middleware);
 
-// using static files 
-app.use('/static', express.static(path.join(__dirname, 'public')))
+// using static files
+app.use("/static", express.static(path.join(__dirname, "public")));
 
 // API request limit
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    max: 1000, // limit each IP to 100 requests per windowMs
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });

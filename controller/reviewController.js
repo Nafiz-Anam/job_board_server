@@ -76,6 +76,11 @@ var ReviewController = {
                 .then(async (result) => {
                     let response = [];
                     for (val of result) {
+                        let user_info = await helpers.get_data_list(
+                            "full_name,profile_img",
+                            "users",
+                            { id: val?.review_from }
+                        );
                         temp = {
                             id: val?.id ? await enc_dec.encrypt(val?.id) : "",
                             job_id: val?.job_id
@@ -87,6 +92,10 @@ var ReviewController = {
                             review_from: val?.review_from
                                 ? await enc_dec.encrypt(val?.review_from)
                                 : "",
+                            reviewer: {
+                                full_name: user_info[0].full_name,
+                                profile_img: user_info[0].profile_img,
+                            },
                             review_to: val?.review_to
                                 ? await enc_dec.encrypt(val?.review_to)
                                 : "",
