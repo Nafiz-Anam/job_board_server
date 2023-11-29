@@ -77,7 +77,14 @@ var dbModel = {
         return response;
     },
 
-    select_list: async (condition, date_condition, limit, search, range) => {
+    select_list: async (
+        condition,
+        date_condition,
+        limit,
+        search,
+        range,
+        in_values
+    ) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
 
@@ -93,13 +100,25 @@ var dbModel = {
         }
 
         if (Object.keys(range).length) {
-            console.log(range);
             let range_str = await helpers.get_amount_condition(range, "budget");
 
             if (final_cond == " where ") {
                 final_cond = final_cond + range_str;
             } else {
                 final_cond = final_cond + " and " + range_str;
+            }
+        }
+
+        if (Object.keys(in_values).length) {
+            let in_str = await helpers.get_in_condition(
+                "category_id",
+                in_values?.category_id
+            );
+
+            if (final_cond == " where ") {
+                final_cond = final_cond + in_str;
+            } else {
+                final_cond = final_cond + " and " + in_str;
             }
         }
 
@@ -234,7 +253,7 @@ var dbModel = {
         return response;
     },
 
-    get_count: async (condition, date_condition, search, range) => {
+    get_count: async (condition, date_condition, search, range, in_values) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
 
@@ -246,6 +265,19 @@ var dbModel = {
                 final_cond = final_cond + condition_str;
             } else {
                 final_cond = final_cond + " and " + condition_str;
+            }
+        }
+
+        if (Object.keys(in_values).length) {
+            let in_str = await helpers.get_in_condition(
+                "category_id",
+                in_values?.category_id
+            );
+
+            if (final_cond == " where ") {
+                final_cond = final_cond + in_str;
+            } else {
+                final_cond = final_cond + " and " + in_str;
             }
         }
 

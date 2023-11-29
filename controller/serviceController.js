@@ -551,6 +551,7 @@ var ServiceController = {
             let condition = {};
             let search = {};
             let range = {};
+            let in_values = {};
             if (req.bodyString("from_amount")) {
                 range.from = parseInt(req.bodyString("from_amount"));
             }
@@ -580,9 +581,13 @@ var ServiceController = {
                 condition.deleted = req.bodyString("deleted");
             }
             if (req.bodyString("category_id")) {
-                condition.category_id = enc_dec.decrypt(
-                    req.bodyString("category_id")
+                const encryptedCategoryIds = req
+                    .bodyString("category_id")
+                    .split(",");
+                const decryptedCategoryIds = encryptedCategoryIds.map((id) =>
+                    enc_dec.decrypt(id)
                 );
+                in_values.category_id = decryptedCategoryIds.join(",");
             }
             if (req.bodyString("sub_category_id")) {
                 condition.sub_category_id = enc_dec.decrypt(
@@ -594,10 +599,18 @@ var ServiceController = {
                 condition,
                 {},
                 search,
-                range
+                range,
+                in_values
             );
 
-            await ServiceModel.select_list(condition, {}, limit, search, range)
+            await ServiceModel.select_list(
+                condition,
+                {},
+                limit,
+                search,
+                range,
+                in_values
+            )
                 .then(async (result) => {
                     let response = [];
 

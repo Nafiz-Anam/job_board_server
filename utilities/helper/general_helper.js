@@ -256,7 +256,6 @@ var helpers = {
 
     get_amount_condition: async (range, field_name) => {
         if (range?.from > 0 && range?.to > 0) {
-            console.log("object");
             return `${field_name} >= ${range?.from} AND ${field_name} <= ${range?.to}`;
         } else if (range?.from > 0 && !range?.to) {
             return `${field_name} >= ${range?.from}`;
@@ -510,6 +509,15 @@ var helpers = {
         let output_string1 = words.slice(1).join(" ");
 
         return output_string1;
+    },
+
+    get_in_condition: async (key, value) => {
+        if (!key || !value) {
+            return "";
+        }
+        const valueArray = value.split(",").map((item) => item.trim());
+        const valueCondition = valueArray.map((item) => `'${item}'`).join(",");
+        return `${key} IN (${valueCondition})`;
     },
 
     get_conditional_and_like_string: async (obj) => {
