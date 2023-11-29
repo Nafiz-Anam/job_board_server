@@ -138,15 +138,18 @@ var AuthController = {
     send_otp: async (req, res) => {
         const { mobile_code, mobile_no, referral_code } = req.body;
         try {
-            let found = await helpers.get_data_list("id", "users", {
-                referral_code,
-            });
-            if (found.length == 0) {
-                return res.status(500).json({
-                    status: false,
-                    message: "Invalid referral code!",
+            if(referral_code){
+                let found = await helpers.get_data_list("id", "users", {
+                    referral_code,
                 });
+                if (found.length == 0) {
+                    return res.status(500).json({
+                        status: false,
+                        message: "Invalid referral code!",
+                    });
+                }
             }
+            
             let otp = await helpers.generateOtp(6);
             const title = "Mr. Xpert";
             const mobile_number = `${mobile_code}${mobile_no}`;
