@@ -59,7 +59,7 @@ router.post(
     authController.profile_details
 );
 router.post("/check-user", authController.check_user);
-router.post("/list", checkPermission, authController.list);
+router.post("/list", authController.list);
 router.post(
     "/update_commission",
     checkAdminToken,

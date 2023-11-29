@@ -18,7 +18,6 @@ router.post(
     checkAdminToken,
     ServiceController.request_update
 );
-
 router.post("/delete", checkPermission, ServiceController.delete);
 router.post("/book", checkPermission, ServiceController.booking);
 router.post("/bookings", checkPermission, ServiceController.booking_list);
