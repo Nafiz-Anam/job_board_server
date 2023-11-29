@@ -550,6 +550,13 @@ var ServiceController = {
 
             let condition = {};
             let search = {};
+            let range = {};
+            if (req.bodyString("from_amount")) {
+                range.from = parseInt(req.bodyString("from_amount"));
+            }
+            if (req.bodyString("to_amount")) {
+                range.to = parseInt(req.bodyString("to_amount"));
+            }
             if (req.bodyString("search")) {
                 search.service_no = req.bodyString("search");
                 search.title = req.bodyString("search");
@@ -586,10 +593,11 @@ var ServiceController = {
             const totalCount = await ServiceModel.get_count(
                 condition,
                 {},
-                search
+                search,
+                range
             );
 
-            await ServiceModel.select_list(condition, {}, limit, search)
+            await ServiceModel.select_list(condition, {}, limit, search, range)
                 .then(async (result) => {
                     let response = [];
 

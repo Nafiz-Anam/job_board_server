@@ -77,7 +77,7 @@ var dbModel = {
         return response;
     },
 
-    select_list: async (condition, date_condition, limit, search) => {
+    select_list: async (condition, date_condition, limit, search, range) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
 
@@ -89,6 +89,17 @@ var dbModel = {
                 final_cond = final_cond + condition_str;
             } else {
                 final_cond = final_cond + " and " + condition_str;
+            }
+        }
+
+        if (Object.keys(range).length) {
+            console.log(range);
+            let range_str = await helpers.get_amount_condition(range, "budget");
+
+            if (final_cond == " where ") {
+                final_cond = final_cond + range_str;
+            } else {
+                final_cond = final_cond + " and " + range_str;
             }
         }
 
@@ -223,7 +234,7 @@ var dbModel = {
         return response;
     },
 
-    get_count: async (condition, date_condition, search) => {
+    get_count: async (condition, date_condition, search, range) => {
         let qb = await pool.get_connection();
         let final_cond = " where ";
 
@@ -235,6 +246,17 @@ var dbModel = {
                 final_cond = final_cond + condition_str;
             } else {
                 final_cond = final_cond + " and " + condition_str;
+            }
+        }
+
+        if (Object.keys(range).length) {
+            console.log(range);
+            let range_str = await helpers.get_amount_condition(range, "budget");
+
+            if (final_cond == " where ") {
+                final_cond = final_cond + range_str;
+            } else {
+                final_cond = final_cond + " and " + range_str;
             }
         }
 

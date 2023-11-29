@@ -254,6 +254,17 @@ var helpers = {
         return response[0]?.total;
     },
 
+    get_amount_condition: async (range, field_name) => {
+        if (range?.from > 0 && range?.to > 0) {
+            console.log("object");
+            return `${field_name} >= ${range?.from} AND ${field_name} <= ${range?.to}`;
+        } else if (range?.from > 0 && !range?.to) {
+            return `${field_name} >= ${range?.from}`;
+        } else if (range?.to > 0 && !range?.from) {
+            return `${field_name} <= ${range?.to}`;
+        }
+    },
+
     get_avg_rating: async (review_to) => {
         let qb = await pool.get_connection();
         let query = `SELECT review_to, COALESCE(AVG(rating), 0) AS average_rating FROM mx_reviews WHERE review_to = ${review_to} GROUP BY review_to;`;
